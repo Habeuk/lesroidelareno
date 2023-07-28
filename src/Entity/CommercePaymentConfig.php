@@ -294,31 +294,31 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
       ]
     ])->setDefaultValue('test');
     //
-    $fields['percent_value'] = BaseFieldDefinition::create('string')->setLabel(t('Percent value'))->setSettings([
+    $fields['percent_value'] = BaseFieldDefinition::create('integer')->setLabel(t('Percent value'))->setSettings([
       'max_length' => 100,
       'text_processing' => 0
     ])->setDisplayOptions('view', [
       'label' => 'above',
+      'type' => 'string',
+      'weight' => -4
+    ])->setDisplayOptions('form', [
       'type' => 'number',
       'weight' => -4,
       'min' => 0
-    ])->setDisplayOptions('form', [
-      'type' => 'string_textfield',
-      'weight' => -4
-    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE);
+    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDefaultValue(10);
     //
-    $fields['min_value_paid'] = BaseFieldDefinition::create('string')->setLabel(t('Min value paid'))->setSettings([
+    $fields['min_value_paid'] = BaseFieldDefinition::create('integer')->setLabel(t('Min value paid'))->setSettings([
       'max_length' => 100,
       'text_processing' => 0
     ])->setDisplayOptions('view', [
       'label' => 'above',
+      'type' => 'string',
+      'weight' => -4
+    ])->setDisplayOptions('form', [
       'type' => 'number',
       'weight' => -4,
       'min' => 0
-    ])->setDisplayOptions('form', [
-      'type' => 'string_textfield',
-      'weight' => -4
-    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE);
+    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDefaultValue(3);
     //
     $fields['active'] = BaseFieldDefinition::create('boolean')->setLabel(" Activer ")->setDisplayOptions('form', [
       'type' => 'boolean_checkbox',
