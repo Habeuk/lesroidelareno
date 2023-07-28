@@ -200,6 +200,14 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     return $this->get('mode')->value;
   }
   
+  public function getPercentValue() {
+    return $this->get('percent_value')->value;
+  }
+  
+  public function getMinValuePaid() {
+    return $this->get('min_value_paid')->value;
+  }
+  
   /**
    *
    * {@inheritdoc}

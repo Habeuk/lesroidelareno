@@ -104,10 +104,30 @@ class LesroidelarenoConfigController extends ControllerBase {
       elseif ($CommercePaymentConfig->get('payment_plugin_id')->value == 'stripe_cart_by_domain') {
         $form['percent_value']['#access'] = false;
         $form['min_value_paid']['#access'] = false;
+        $this->setRequired($form['publishable_key']);
+        $this->setRequired($form['secret_key']);
+      }
+      else {
+        // dump($form['percent_value']);
+        $this->setRequired($form['percent_value']);
+        $this->setRequired($form['min_value_paid']);
+        $this->setRequired($form['publishable_key']);
+        $this->setRequired($form['secret_key']);
       }
       return $form;
     }
     return [];
+  }
+  
+  protected function setRequired(&$field) {
+    $field['#required'] = true;
+    $field['widget']['#required'] = true;
+    if (!empty($field['widget'][0])) {
+      $field['widget'][0]['#required'] = true;
+      if (!empty($field['widget'][0]['value'])) {
+        $field['widget'][0]['value']['#required'] = true;
+      }
+    }
   }
   
   /**

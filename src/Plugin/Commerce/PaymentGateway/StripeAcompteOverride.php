@@ -78,6 +78,8 @@ class StripeAcompteOverride extends StripeAcompte {
         $this->configuration['publishable_key'] = $this->commerce_payment_config->getPublishableKey();
         $this->configuration['secret_key'] = $this->commerce_payment_config->getSecretKey();
         $this->configuration['mode'] = $this->commerce_payment_config->getMode();
+        $this->configuration['percent_value'] = $this->commerce_payment_config->getPercentValue();
+        $this->configuration['min_value_paid'] = $this->commerce_payment_config->getMinValuePaid();
       }
       else {
         $this->configuration['publishable_key'] = '';
