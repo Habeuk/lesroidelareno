@@ -25,9 +25,9 @@ use Drupal\stripebyhabeuk\Plugin\Commerce\PaymentGateway\StripeAcompte;
  * @CommercePaymentGateway(
  *   id = "stripeacompteoverride",
  *   label = "StripeHabeuk Acompte by lesroidelareno",
- *   display_label = "StripeHabeuk Acompte by lesroidelareno",
+ *   display_label = "Payer l'acompte",
  *   forms = {
- *     "add-payment-method" = "Drupal\lesroidelareno\PluginForm\Stripe\PaymentMethodAddFormOverride",
+ *     "add-payment-method" = "Drupal\lesroidelareno\PluginForm\Stripe\PaymentMethodAddAcompteOverride",
  *   },
  *   payment_method_types = {"credit_card"},
  *   credit_card_types = {

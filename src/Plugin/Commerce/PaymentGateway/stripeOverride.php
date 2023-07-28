@@ -24,7 +24,7 @@ use Stripe\Stripe as StripeLibrary;
  * @CommercePaymentGateway(
  *   id = "lesroidelareno_stripe_override",
  *   label = "Stripe by lesroidelareno",
- *   display_label = "Stripe by lesroidelareno",
+ *   display_label = "Payer la totalité",
  *   forms = {
  *     "add-payment-method" = "Drupal\lesroidelareno\PluginForm\Stripe\PaymentMethodAddFormOverride",
  *   },
