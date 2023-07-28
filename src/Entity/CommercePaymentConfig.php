@@ -305,7 +305,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
       'type' => 'number',
       'weight' => -4,
       'min' => 0
-    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDefaultValue(10);
+    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDefaultValue(10)->setDescription(t('Percentage deposit based on the total amount to be paid'));
     //
     $fields['min_value_paid'] = BaseFieldDefinition::create('integer')->setLabel(t('Min value paid'))->setSettings([
       'max_length' => 100,
@@ -318,7 +318,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
       'type' => 'number',
       'weight' => -4,
       'min' => 0
-    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDefaultValue(3);
+    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDefaultValue(3)->setDescription(t('Minimum deposit amount depending on the currency'));
     //
     $fields['active'] = BaseFieldDefinition::create('boolean')->setLabel(" Activer ")->setDisplayOptions('form', [
       'type' => 'boolean_checkbox',
