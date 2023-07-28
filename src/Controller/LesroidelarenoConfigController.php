@@ -101,7 +101,7 @@ class LesroidelarenoConfigController extends ControllerBase {
         $form['percent_value']['#access'] = false;
         $form['min_value_paid']['#access'] = false;
       }
-      elseif ($CommercePaymentConfig->get('payment_plugin_id')->value == 'paiement_acompte') {
+      elseif ($CommercePaymentConfig->get('payment_plugin_id')->value == 'stripe_cart_by_domain') {
         $form['percent_value']['#access'] = false;
         $form['min_value_paid']['#access'] = false;
       }
