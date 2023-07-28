@@ -45,7 +45,8 @@ class LesroidelarenoConfigController extends ControllerBase {
      */
     $validPayments = [
       'stripe_cart_by_domain',
-      'commander'
+      'commander',
+      'paiement_acompte'
     ];
     // permet de lister tous les plugins
     if ($payment_plugin_id == 'list-all') {
@@ -92,11 +93,17 @@ class LesroidelarenoConfigController extends ControllerBase {
         $form['domain_id']['#access'] = false;
         $form['payment_plugin_id']['#access'] = false;
       }
-      // on masque les champs non desirer.
-      if ($CommercePaymentConfig->get('payment_plugin_id')->value != 'stripe_cart_by_domain') {
+      // On masque les champs non desirer.
+      if ($CommercePaymentConfig->get('payment_plugin_id')->value == 'commander') {
         $form['publishable_key']['#access'] = false;
         $form['secret_key']['#access'] = false;
         $form['mode']['#access'] = false;
+        $form['percent_value']['#access'] = false;
+        $form['min_value_paid']['#access'] = false;
+      }
+      elseif ($CommercePaymentConfig->get('payment_plugin_id')->value == 'paiement_acompte') {
+        $form['percent_value']['#access'] = false;
+        $form['min_value_paid']['#access'] = false;
       }
       return $form;
     }

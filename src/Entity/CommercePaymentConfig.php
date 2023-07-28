@@ -243,7 +243,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     $fields['payment_plugin_id'] = BaseFieldDefinition::create('string')->setLabel(t('Payment plugin id '))->setSettings([
       'max_length' => 100,
       'text_processing' => 0
-    ])->setDefaultValue('')->setDisplayOptions('view', [
+    ])->setDisplayOptions('view', [
       'label' => 'above',
       'type' => 'string',
       'weight' => -4
@@ -255,7 +255,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     $fields['publishable_key'] = BaseFieldDefinition::create('string')->setLabel(t('Publishable Key'))->setSettings([
       'max_length' => 100,
       'text_processing' => 0
-    ])->setDefaultValue('')->setDisplayOptions('view', [
+    ])->setDisplayOptions('view', [
       'label' => 'above',
       'type' => 'string',
       'weight' => -4
@@ -293,6 +293,32 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
         'live' => "Production"
       ]
     ])->setDefaultValue('test');
+    //
+    $fields['percent_value'] = BaseFieldDefinition::create('string')->setLabel(t('Percent value'))->setSettings([
+      'max_length' => 100,
+      'text_processing' => 0
+    ])->setDisplayOptions('view', [
+      'label' => 'above',
+      'type' => 'number',
+      'weight' => -4,
+      'min' => 0
+    ])->setDisplayOptions('form', [
+      'type' => 'string_textfield',
+      'weight' => -4
+    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE);
+    //
+    $fields['min_value_paid'] = BaseFieldDefinition::create('string')->setLabel(t('Min value paid'))->setSettings([
+      'max_length' => 100,
+      'text_processing' => 0
+    ])->setDisplayOptions('view', [
+      'label' => 'above',
+      'type' => 'number',
+      'weight' => -4,
+      'min' => 0
+    ])->setDisplayOptions('form', [
+      'type' => 'string_textfield',
+      'weight' => -4
+    ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE);
     //
     $fields['active'] = BaseFieldDefinition::create('boolean')->setLabel(" Activer ")->setDisplayOptions('form', [
       'type' => 'boolean_checkbox',
