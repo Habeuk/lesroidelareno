@@ -53,8 +53,13 @@ class LesroidelarenoConfigController extends ControllerBase {
       $query = \Drupal::entityTypeManager()->getStorage("menu")->getQuery();
       $query->condition($key, $this->domainNegotiator->getActiveId());
       $ids = $query->execute();
+      if (!$ids) {
+        // Si on ne parviens pas à recuperer l'id, on essaie via la label.
+        $query = \Drupal::entityTypeManager()->getStorage("menu")->getQuery();
+        $query->condition('label', $this->domainNegotiator->getActiveId(), 'CONTAINS');
+        $ids = $query->execute();
+      }
       lesroidelareno::setDataCache($key, $ids);
-      $this->messenger()->addError("set to cache");
     }
     if ($ids) {
       $id = reset($ids);

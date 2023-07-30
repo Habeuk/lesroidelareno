@@ -29,10 +29,7 @@ class AddItemMenu extends MenuLinkAdd {
     $key = "third_party_settings.lesroidelareno.domain_id";
     $ids = lesroidelareno::retriveDataByKey($key);
     $parameters['menu'] = $ids ? reset($ids) : '';
-    if (empty($ids)) {
-      dump($ids);
-      dd(lesroidelareno::getCacheAPCu());
-    }
+    
     return $parameters;
   }
   
