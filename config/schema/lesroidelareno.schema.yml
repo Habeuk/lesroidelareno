@@ -1,0 +1,7 @@
+system.menu.*.third_party.lesroidelareno:
+  type: mapping
+  label: 'Donnes specifique'
+  mapping:
+    domain_id:
+      type: string
+      label: 'domaine id that this menu is attach'

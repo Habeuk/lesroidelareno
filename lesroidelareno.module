@@ -21,6 +21,7 @@ use Drupal\lesroidelareno\HandlerClass\CommerceProductAccess;
 use Drupal\lesroidelareno\HandlerClass\CommervceProductVariationAccess;
 use Drupal\lesroidelareno\HandlerClass\WebformAccess;
 use Drupal\lesroidelareno\HandlerClass\RdvConfigAccess;
+use Drupal\lesroidelareno\HandlerClass\MenuLinkContentAccess;
 use Drupal\domain_source\DomainSourceElementManagerInterface;
 use Drupal\domain_access\DomainAccessManagerInterface;
 use Drupal\lesroidelareno\lesroidelareno;
@@ -59,10 +60,10 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
         $entity->set(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD, $domain->id());
       }
     }
-    elseif ($entity_id == 'paragraph') {
+    elseif ($entity_id == 'paragraph' && $entity_id == 'menu_link_content') {
       /**
-       * Lors de la creation d'un paragraph on remplit automatiquement le champs
-       * 'wbh_user_id'.
+       * Lors de la creation d'un paragraph (ou ...) on remplit automatiquement
+       * le champs'wbh_user_id'.
        */
       $entity->set('wbh_user_id', $uid);
     }
@@ -141,6 +142,7 @@ function lesroidelareno_entity_type_alter(array &$entity_types) {
   $entity_types['commerce_product_variation']->setHandlerClass('access', CommervceProductVariationAccess::class);
   $entity_types['webform']->setHandlerClass('access', WebformAccess::class);
   $entity_types['rdv_config_entity']->setHandlerClass('access', RdvConfigAccess::class);
+  $entity_types['menu_link_content']->setHandlerClass('access', MenuLinkContentAccess::class);
   // $entity_types['cv_entity']->setHandlerClass('access',
   // configThemeAccess::class);
   // $entity_types['user']->setListBuilderClass(MyModuleListBuilder::class); //
@@ -175,6 +177,20 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
   }
   elseif ($entity_type->id() == 'submit_rdv_entity') {
     __prise_rendez_vous_fields_domain($fields);
+  }
+  elseif ($entity_type->id() == 'menu_link_content') {
+    // on ajoute un champs pour identifier l'auteur du menu.
+    // ( ca champs doit etre desactiver à l'avichage par defaut ).
+    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setDisplayOptions('form', [
+      'type' => 'entity_reference_autocomplete',
+      'weight' => 5,
+      'settings' => [
+        'match_operator' => 'CONTAINS',
+        'size' => '60',
+        'autocomplete_type' => 'tags',
+        'placeholder' => ''
+      ]
+    ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [])->setDescription("Idealement on doit pouvoir identifier l'auteur d'un element de menu à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
   }
   
   return $fields;
@@ -666,15 +682,14 @@ function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface
     'path',
     'field_formulaire',
     'revision_log',
-    'langcode'
+    'langcode',
+    'wbh_user_id',
+    'user_id'
   ];
   
-  $roles = $account->getRoles();
-  
   if (in_array($field_definition->getName(), $disabledFields)) {
-    if (in_array('administrator', $roles)) {
+    if (lesroidelareno::isAdministrator())
       return AccessResult::allowed();
-    }
     elseif ($operation != 'view')
       return AccessResult::forbidden();
   }
@@ -891,6 +906,46 @@ function _prise_rendez_vous_default_configs_submit(array &$form, FormStateInterf
  */
 function _rdv_config_entity_form_submit(array &$form, FormStateInterface $form_state) {
   $form_state->setRedirect('user.page');
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function lesroidelareno_form_menu_form_alter(&$form, FormStateInterface $form_state) {
+  /**
+   *
+   * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
+   */
+  $domain_source = \Drupal::service('domain_source.path_processor');
+  $domain = $domain_source->getActiveDomain();
+  // Load the current node type configuration entity.
+  /**
+   *
+   * @var \Drupal\system\Entity\Menu $menu
+   */
+  $menu = $form_state->getFormObject()->getEntity();
+  $form['domain_id'] = [
+    '#type' => 'textfield',
+    '#title' => t('Domain Id'),
+    '#default_value' => $menu->getThirdPartySetting('lesroidelareno', 'domain_id', $domain->id())
+  ];
+  $form['#entity_builders'][] = 'lesroidelareno_form_menu_form_builder';
+}
+
+/**
+ * Ajoute des champs au niveau de la configuration.
+ *
+ * @return number
+ */
+function lesroidelareno_form_menu_form_builder($entity_type, $type, &$form, FormStateInterface $form_state) {
+  /**
+   * On ajoute le champs doamin_id.
+   */
+  if (!empty($form_state->getValue('domain_id'))) {
+    $type->setThirdPartySetting('lesroidelareno', 'domain_id', $form_state->getValue('domain_id'));
+    return $form_state->getValue('domain_id');
+  }
+  $type->unsetThirdPartySetting('lesroidelareno', 'domain_id');
 }
 
 

@@ -42,7 +42,26 @@ lesroidelareno.payement_gateways:
   requirements:
     _permission: 'access content'
     _role: 'gerant_de_site_web+administrator'
-   
+    
+#
+lesroidelareno.manage_menu:
+  path: '/admin/lesroidelareno/manage-menu-items'
+  defaults:
+    _title: 'Gestion du menu'
+    _controller: '\Drupal\lesroidelareno\Controller\LesroidelarenoConfigController::manageMenuItems'
+  requirements:
+    _permission: 'access content'
+    _role: 'gerant_de_site_web+administrator'
+
+lesroidelareno.manage_menu.add:
+  path: '/admin/lesroidelareno/manage-menu-items/add/{menu}'
+  defaults:
+    _title: 'Ajout un menu'
+    _controller: '\Drupal\lesroidelareno\Controller\LesroidelarenoConfigController::addMenuItem'
+    _menu: ''
+  requirements:
+    _permission: 'access content'
+    _role: 'gerant_de_site_web+administrator'   
 
     
     

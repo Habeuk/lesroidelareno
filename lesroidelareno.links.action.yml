@@ -8,3 +8,16 @@ entity.commerce_payment_config.add_form:
   title: 'Add Commerce payment config'
   appears_on:
     - entity.commerce_payment_config.collection
+#ajoute le lien permettant d'ajouter un lien.
+lesroidelareno.menu.add_link_form:
+  title: 'Add link'
+  class: \Drupal\lesroidelareno\Plugin\Menu\LocalAction\AddItemMenu
+  appears_on:
+    - lesroidelareno.manage_menu   
+    
+#test
+#lesroidelareno.test:
+#  route_name: lesroidelareno.manage_menu
+#  title: 'Add link test lesroidelareno.manage_menu'
+#  appears_on:
+#    - lesroidelareno.manage_menu   

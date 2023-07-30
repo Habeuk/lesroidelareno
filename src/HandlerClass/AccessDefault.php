@@ -30,18 +30,6 @@ trait AccessDefault {
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
-    // dump($entity->getEntityTypeId() . ' :: ' . $operation);
-    // if ($operation == 'update' || $operation == 'delete') {
-    // $debug = [
-    // 'entity_uid' => $entity->getOwnerId(),
-    // 'current_user_uid' => lesroidelareno::getCurrentUserId(),
-    // 'entity' => $entity->toArray()
-    // ];
-    // \Stephane888\Debug\debugLog::$max_depth = 5;
-    // \Stephane888\Debug\debugLog::kintDebugDrupal($debug,
-    // $entity->getEntityTypeId() . '---checkAccess---' . $operation . '--',
-    // true);
-    // }
     switch ($operation) {
       // Tout le monde peut voir les contenus publiées.
       case 'view':

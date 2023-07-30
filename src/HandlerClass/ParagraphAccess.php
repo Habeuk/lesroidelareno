@@ -30,6 +30,7 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
   protected function checkAccess(EntityInterface $paragraph, $operation, AccountInterface $account) {
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
+    
     switch ($operation) {
       // Tout le monde peut voir les contenus publiées.
       case 'view':
@@ -44,11 +45,23 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
         if ($isAdministrator)
           return AccessResult::allowed();
         elseif ($isOwnerSite) {
+          
           // si on parvient à identifier le parent.
           if ($paragraph->getParentEntity() != NULL) {
             return parent::checkAccess($paragraph, $operation, $account);
           }
           elseif ($paragraph->get('wbh_user_id')->target_id == lesroidelareno::getCurrentUserId()) {
+            // dump(\Drupal::routeMatch()->getRouteObject());
+            // dump(\Drupal::routeMatch()->getRouteName());
+            // /**
+            // *
+            // * @var \Drupal\Core\Routing\AccessAwareRouter $router
+            // */
+            // $router = \Drupal::service('router');
+            // dump($router->getRouteCollection()->get('layout_builder.overrides.paragraph.view'));
+            
+            // $role = \Drupal\user\Entity\Role::load('gerant_de_site_web');
+            // dump($role->getPermissions());
             return AccessResult::allowed();
           }
         }

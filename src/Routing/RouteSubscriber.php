@@ -9,7 +9,7 @@ use Symfony\Component\Routing\RouteCollection;
  * Listens to the dynamic route events.
  */
 class RouteSubscriber extends RouteSubscriberBase {
-
+  
   /**
    *
    * {@inheritdoc}
@@ -20,9 +20,7 @@ class RouteSubscriber extends RouteSubscriberBase {
     if ($route = $collection->get('system.entity_autocomplete')) {
       $route->setDefault('_controller', '\Drupal\lesroidelareno\Services\EntityReferenceAutocomplete::handleAutocompleteCustom');
     }
-
-    //
-
+    
     foreach ($collection as $name => $route) {
       /**
        *
@@ -39,7 +37,33 @@ class RouteSubscriber extends RouteSubscriberBase {
         // Pour toutes les demandes get les redirigées sur cette route.
         // le traitement se fait via un hook ou un event.
       }
+      // Ajouter la possibilite au proproitaire de pouvoir modifier la
+      // configuration du layout. (il doit aussi avoir access au contenu en
+      // question).
+      elseif ($name == 'layout_builder.overrides.paragraph.view' || $name == 'entity.paragraph.canonical') {
+      /**
+       * Le requirementes est ajouté mais l'utilisateur n'a pas access à la
+       * ressource, du à un autre role definie en amont.
+       * (_layout_builder_access ). (On est passe pas le UI pour configurer
+       * chaque bloc ).
+       */
+        // $requirements = [
+        // '_role' => "gerant_de_site_web+administrator"
+        // ];
+        // $route->addRequirements($requirements);
+      }
+      // else {
+      // // dump($defaults);
+      // }
+      // elseif (!empty($defaults['_entity_form']) && $defaults['_entity_form']
+      // == 'paragraph.layout_builder') {
+      // $requirements = [
+      // '_role' => "gerant_de_site_web+administrator"
+      // ];
+      // $route->addRequirements($requirements);
+      // $collection->addRequirements($requirements);
+      // }
     }
   }
-
+  
 }

@@ -35,9 +35,78 @@ class LesroidelarenoConfigController extends ControllerBase {
   }
   
   /**
-   * --
+   * permet de gerer les menus.
+   */
+  public function manageMenuItems(Request $Request) {
+    if (!lesroidelareno::userIsAdministratorSite()) {
+      return $this->forbittenMessage();
+    }
+    $key = "third_party_settings.lesroidelareno.domain_id";
+    /**
+     * On sauvegarde le resultat, car cela est utiliser pour fabrqriquer le lien
+     * "ajouter un menu" et de plus cela accelere traitement à ce stade.
+     *
+     * @var array $ids
+     */
+    $ids = lesroidelareno::retriveDataByKey($key);
+    if (!$ids) {
+      $query = \Drupal::entityTypeManager()->getStorage("menu")->getQuery();
+      $query->condition($key, $this->domainNegotiator->getActiveId());
+      $ids = $query->execute();
+      lesroidelareno::setDataCache($key, $ids);
+      $this->messenger()->addError("set to cache");
+    }
+    if ($ids) {
+      $id = reset($ids);
+      $menu = \Drupal\system\Entity\Menu::load($id);
+      // on definit le type d'operation car la valeur default n'est pas
+      // specifier.
+      $menuForm = $this->entityFormBuilder()->getForm($menu, "edit");
+      if (!lesroidelareno::isAdministrator()) {
+        $menuForm['id']['#access'] = false;
+        $menuForm['actions']['clear']['#access'] = false;
+        $menuForm['actions']['delete']['#access'] = false;
+        $menuForm['label']['#access'] = false;
+        $menuForm['description']['#access'] = false;
+        $menuForm['domain_id']['#access'] = false;
+      }
+      // on passe le domaine dans le paramettre.
+      // dump(\Drupal::routeMatch()->getRouteObject()->getDefaults());
+      return $menuForm;
+    }
+    $this->messenger()->addError("impossible de determiner votre menu, veillez contacter l'administrateur");
+    return [];
+  }
+  
+  public function addMenuItem($menu) {
+    if (!lesroidelareno::userIsAdministratorSite()) {
+      return $this->forbittenMessage();
+    }
+    $menu = \Drupal\menu_link_content\Entity\MenuLinkContent::create([
+      'bundle' => $menu
+    ]);
+    $menuForm = $this->entityFormBuilder()->getForm($menu);
+    if (!lesroidelareno::isAdministrator()) {
+      $menuForm['id']['#access'] = false;
+      $menuForm['actions']['clear']['#access'] = false;
+      $menuForm['actions']['delete']['#access'] = false;
+      $menuForm['label']['#access'] = false;
+      $menuForm['description']['#access'] = false;
+      $menuForm['domain_id']['#access'] = false;
+    }
+    // on passe le domaine dans le paramettre.
+    // dump(\Drupal::routeMatch()->getRouteObject()->getDefaults());
+    return $menuForm;
+  }
+  
+  /**
+   * permet de lister les paiements et de les configurees par le prorietaire du
+   * site.
    */
   public function PayementGateways(Request $request, $payment_plugin_id) {
+    if (!lesroidelareno::userIsAdministratorSite() && lesroidelareno::FindUserAuthorDomain()) {
+      return $this->forbittenMessage();
+    }
     /**
      * Contient les payments qui peuvent etre utiliser par les clients.
      *
@@ -136,6 +205,9 @@ class LesroidelarenoConfigController extends ControllerBase {
    * @return array
    */
   public function UpdateDefaultConfigsCreneauRdv() {
+    if (!lesroidelareno::userIsAdministratorSite()) {
+      return $this->forbittenMessage();
+    }
     $content = ConfigDrupal::config('prise_rendez_vous.default_configs');
     $entity = RdvConfigEntity::load($content['id']);
     if (!$entity) {
@@ -153,24 +225,18 @@ class LesroidelarenoConfigController extends ControllerBase {
     return $form;
   }
   
-  // function ConfigPage() {
-  // return [
-  // '#type' => 'html_tag',
-  // '#tag' => 'div',
-  // '#value' => 'Page config'
-  // ];
-  // }
+  /**
+   * Le but de cette fonction est de notifier l'administrateur l'acces à des
+   * informations senssible.
+   *
+   * @param string $message
+   * @param array $context
+   * @return array
+   */
+  protected function forbittenMessage($message = "Access non authoriser", $context = []) {
+    $this->getLogger("lesroidelareno")->critical($message, $context);
+    $this->messenger()->addError($message);
+    return [];
+  }
   
-  // function ConfigPage2() {
-  // return [
-  // '#type' => 'html_tag',
-  // '#tag' => 'div',
-  // '#value' => 'Page config 2'
-  // ];
-  // }
-
-/**
- *
- * {@inheritdoc}
- */
 }
