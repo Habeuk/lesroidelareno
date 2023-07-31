@@ -55,6 +55,14 @@ class MenuLinkContentAccess extends MenuLinkContentAccessControlHandler {
             if ($menu->getThirdPartySetting('lesroidelareno', 'domain_id') === $domain_id) {
               return AccessResult::allowed();
             }
+            // verification à partir du label.
+            else {
+              $query = \Drupal::entityTypeManager()->getStorage('menu')->getQuery();
+              $query->condition('label', $domain_id, 'CONTAINS');
+              $ids = $query->execute();
+              if ($ids)
+                return AccessResult::allowed();
+            }
           }
         }
     }

@@ -190,6 +190,7 @@ class lesroidelareno {
           self::$userIsAdministratorSite = true;
         }
         else {
+          self::$userIsAdministratorSite = false;
           /**
            *
            * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
@@ -207,8 +208,6 @@ class lesroidelareno {
               }
             }
           }
-          else
-            self::$userIsAdministratorSite = false;
         }
         // dans la mesure ou le cache n'avais pas cette information on l'ajoute.
         self::setDataCache('userIsAdministratorSite', self::$userIsAdministratorSite);
@@ -243,7 +242,7 @@ class lesroidelareno {
   public static function setDataCache($key, $value) {
     if (self::getCurrentUserId()) {
       if ($value === NULL)
-        throw new Error("La valeur de stockage ne doit pas etre NULL");
+        throw new Error("La valeur de stockage ne doit pas etre NULL " . $key);
       /**
        *
        * @var \Symfony\Component\HttpFoundation\Session\Session $session
