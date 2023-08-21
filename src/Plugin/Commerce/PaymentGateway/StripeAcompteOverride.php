@@ -15,6 +15,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Stripe\Stripe as StripeLibrary;
 use Drupal\stripebyhabeuk\Plugin\Commerce\PaymentGateway\StripeAcompte;
+use Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\PaymentGatewayBase;
+use Drupal\lesroidelareno\lesroidelareno;
 
 /**
  * Provides the Stripe payment gateway.
@@ -39,6 +41,13 @@ use Drupal\stripebyhabeuk\Plugin\Commerce\PaymentGateway\StripeAcompte;
  */
 class StripeAcompteOverride extends StripeAcompte {
   /**
+   * Permet de terminer si la configuration est deja à jour.
+   *
+   * @var string
+   */
+  private $configIsUpdate = FALSE;
+  
+  /**
    *
    * @var \Drupal\lesroidelareno\Entity\CommercePaymentConfig
    */
@@ -48,8 +57,9 @@ class StripeAcompteOverride extends StripeAcompte {
    * Re-initializes the SDK after the plugin is unserialized.
    */
   public function __wakeup() {
-    $this->updateConfigs();
     parent::__wakeup();
+    // new approche.
+    $this->updateConfigs();
   }
   
   /**
@@ -60,15 +70,10 @@ class StripeAcompteOverride extends StripeAcompte {
       'entity.commerce_payment_gateway.collection',
       'entity.commerce_payment_gateway.edit_form'
     ];
-    if (!in_array(\Drupal::routeMatch()->getRouteName(), $DirectAccessRoutes)) {
+    if (!$this->configIsUpdate && !in_array(\Drupal::routeMatch()->getRouteName(), $DirectAccessRoutes)) {
       if (!$this->commerce_payment_config) {
-        /**
-         *
-         * @var DomainNegotiatorInterface $negotiator
-         */
-        $negotiator = \Drupal::service('domain.negotiator');
         $datas = \Drupal::entityTypeManager()->getStorage("commerce_payment_config")->loadByProperties([
-          'domain_id' => $negotiator->getActiveId()
+          'domain_id' => lesroidelareno::getCurrentDomainId()
         ]);
         if ($datas)
           $this->commerce_payment_config = reset($datas);
@@ -78,8 +83,10 @@ class StripeAcompteOverride extends StripeAcompte {
         $this->configuration['publishable_key'] = $this->commerce_payment_config->getPublishableKey();
         $this->configuration['secret_key'] = $this->commerce_payment_config->getSecretKey();
         $this->configuration['mode'] = $this->commerce_payment_config->getMode();
-        $this->configuration['percent_value'] = $this->commerce_payment_config->getPercentValue();
-        $this->configuration['min_value_paid'] = $this->commerce_payment_config->getMinValuePaid();
+        $this->configuration['percent_value'] = (int) $this->commerce_payment_config->getPercentValue();
+        $this->configuration['min_value_paid'] = (int) $this->commerce_payment_config->getMinValuePaid();
+        \Stephane888\Debug\debugLog::kintDebugDrupal($this->configuration, 'updateConfigs', true);
+        $this->configIsUpdate = true;
       }
       else {
         $this->configuration['publishable_key'] = '';
@@ -87,6 +94,30 @@ class StripeAcompteOverride extends StripeAcompte {
         $this->messenger()->addError("Paramettres de vente non configurer");
       }
     }
+  }
+  
+  // public function setConfiguration(array $configuration) {
+  // $this->updateConfigs();
+  // parent::setConfiguration($configuration);
+  // }
+  public function getPercentValue() {
+    $this->updateConfigs();
+    return parent::getPercentValue();
+  }
+  
+  public function getMinValuePaid() {
+    $this->updateConfigs();
+    return parent::getMinValuePaid();
+  }
+  
+  public function getPublishableKey() {
+    $this->updateConfigs();
+    return parent::getPublishableKey();
+  }
+  
+  public function getSecretKey() {
+    $this->updateConfigs();
+    return parent::getSecretKey();
   }
   
 }
