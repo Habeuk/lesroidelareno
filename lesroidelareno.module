@@ -22,6 +22,7 @@ use Drupal\lesroidelareno\HandlerClass\CommervceProductVariationAccess;
 use Drupal\lesroidelareno\HandlerClass\WebformAccess;
 use Drupal\lesroidelareno\HandlerClass\RdvConfigAccess;
 use Drupal\lesroidelareno\HandlerClass\MenuLinkContentAccess;
+use Drupal\lesroidelareno\HandlerClass\BookingConfigAccess;
 use Drupal\domain_source\DomainSourceElementManagerInterface;
 use Drupal\domain_access\DomainAccessManagerInterface;
 use Drupal\lesroidelareno\lesroidelareno;
@@ -44,11 +45,23 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
       $isAdministrator = true;
     
     /**
-     * Objectif est d'ajouté le domaine encours à chaque element du panier.
+     * Objectif est d'ajouté le domaine encours à certains entites( elements de
+     * commerce ).
      * "commerce_order_item" porte les elements du panier.
      * (On ajoute cela egalement à d'autre entites).
      */
-    if ($entity_id == 'commerce_order_item' || $entity_id == 'payment_intents') {
+    $setDomaine = false;
+    switch ($entity_id) {
+      case 'commerce_order': // identification du checkout
+      case 'commerce_order_item': // identification des elemnts du panier.
+      case 'commerce_payment': // identification d'un paiement
+      case 'commerce_payment_method': // identification d'une methode de
+                                       // paiment
+                                       // enregistrer
+        $setDomaine = true;
+        break;
+    }
+    if ($setDomaine) {
       /**
        *
        * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
@@ -143,6 +156,7 @@ function lesroidelareno_entity_type_alter(array &$entity_types) {
   $entity_types['webform']->setHandlerClass('access', WebformAccess::class);
   $entity_types['rdv_config_entity']->setHandlerClass('access', RdvConfigAccess::class);
   $entity_types['menu_link_content']->setHandlerClass('access', MenuLinkContentAccess::class);
+  $entity_types['booking_config']->setHandlerClass('access', BookingConfigAccess::class);
   // $entity_types['cv_entity']->setHandlerClass('access',
   // configThemeAccess::class);
   // $entity_types['user']->setListBuilderClass(MyModuleListBuilder::class); //
@@ -162,10 +176,8 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
      * Afin de ressoudre le probleme d'identification du proprietaire d'un
      * paragraphe, on ajoute un champs wbh_user_id.
      */
-    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [
-      'label' => 'hidden',
-      'type' => 'author',
-      'weight' => 0
+    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragraph entity.'))->setDisplayOptions('form', [ //
+    ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
     ])->setDescription("Idealement on doit pouvoir identifier le paragraph à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
   }
   
@@ -181,16 +193,9 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
   elseif ($entity_type->id() == 'menu_link_content') {
     // on ajoute un champs pour identifier l'auteur du menu.
     // ( ca champs doit etre desactiver à l'avichage par defaut ).
-    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setDisplayOptions('form', [
-      'type' => 'entity_reference_autocomplete',
-      'weight' => 5,
-      'settings' => [
-        'match_operator' => 'CONTAINS',
-        'size' => '60',
-        'autocomplete_type' => 'tags',
-        'placeholder' => ''
-      ]
-    ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [])->setDescription("Idealement on doit pouvoir identifier l'auteur d'un element de menu à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
+    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setDisplayOptions('form', [ //
+    ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
+    ])->setDescription("Idealement on doit pouvoir identifier l'auteur d'un element de menu à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
   }
   
   return $fields;
@@ -374,16 +379,15 @@ function lesroidelareno_preprocess_html(&$vars) {
   $routeName = \Drupal::routeMatch()->getRouteName();
   // $config = ConfigDrupal::config("system.site");
   // dump($config);
-  // dump($routeName);
-  // // on charge une route
-  // /**
-  // *
-  // * @var \Drupal\Core\Routing\RouteProvider $route_provider
-  // */
-  // $route_provider = \Drupal::service('router.route_provider');
-  // $route =
-  // $route_provider->getRouteByName('entity.commerce_product.add_form');
-  // dump($route);
+  /**
+   * charge une route.
+   *
+   * @var \Drupal\Core\Routing\RouteProvider $router
+   */
+  // $router = \Drupal::service("router.route_provider");
+  // $r1 = $router->getRouteByName("entity.booking_config.add_form");
+  // dump($r1);
+  
   //
   //
   // $parameters = \Drupal::routeMatch()->getParameters()->all();
@@ -786,8 +790,26 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\mysql\Driver\Databa
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       // on doit également ajouté le fitre pour les elements suivants :
-      // commerce_payment, commerce_payment_method, commerce_order,
-      // commerce_order_item.
+      case 'commerce_payment':
+        $query->addJoin('INNER', 'commerce_payment__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->addField('fda', 'field_domain_access_target_id');
+        break;
+      case 'commerce_payment_method':
+        $query->addJoin('INNER', 'commerce_payment_method__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->addField('fda', 'field_domain_access_target_id');
+        break;
+      case 'commerce_order':
+        $query->addJoin('INNER', 'commerce_order__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->addField('fda', 'field_domain_access_target_id');
+        break;
+      case 'commerce_order_item':
+        $query->addJoin('INNER', 'commerce_order_item__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->addField('fda', 'field_domain_access_target_id');
+        break;
       case 'site_type_datas':
       case 'taxonomy_term':
       case 'user':

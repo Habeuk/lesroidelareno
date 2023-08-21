@@ -20,7 +20,24 @@ class RouteSubscriber extends RouteSubscriberBase {
     if ($route = $collection->get('system.entity_autocomplete')) {
       $route->setDefault('_controller', '\Drupal\lesroidelareno\Services\EntityReferenceAutocomplete::handleAutocompleteCustom');
     }
-    
+    /**
+     * On modifie les acces pour la creation des contenus entites.
+     * L'utilisateur doit avoir le role gerant_de_site_web ou administrateur.
+     * ( Les entities ont des requiement => "_entity_create_access" =>
+     * "booking_config:{booking_config_type}" )
+     */
+    $routesName = [
+      "entity.booking_config.add_form",
+      "entity.booking_equipes.add_form"
+    ];
+    foreach ($routesName as $name) {
+      if ($route = $collection->get($name)) {
+        $requirements = [
+          "_role" => 'gerant_de_site_web+administrator'
+        ];
+        $route->setRequirements($requirements);
+      }
+    }
     foreach ($collection as $name => $route) {
       /**
        *
@@ -51,6 +68,9 @@ class RouteSubscriber extends RouteSubscriberBase {
         // '_role' => "gerant_de_site_web+administrator"
         // ];
         // $route->addRequirements($requirements);
+      }
+      elseif ($name == 'entity.booking_config.add_form') {
+        //
       }
       // else {
       // // dump($defaults);

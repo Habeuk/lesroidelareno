@@ -55,6 +55,13 @@ class lesroidelareno {
   private static $cacheAPCu = [];
   
   /**
+   * Id du domaine encours.
+   *
+   * @var string
+   */
+  private static $currentDomainId = NULL;
+  
+  /**
    * Pour ce dernier on utilise pas de cache.
    * On se fit au cache drupal, pour la premiere execution ensuite, on utilise
    * la cache statique.
@@ -84,14 +91,8 @@ class lesroidelareno {
       }
       else {
         self::$AuthorOfDomaine = false;
-        /**
-         *
-         * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
-         */
-        $domain_source = \Drupal::service('domain_source.path_processor');
-        $domain = $domain_source->getActiveDomain();
         $domain_ovh_entities = \Drupal::entityTypeManager()->getStorage('domain_ovh_entity')->loadByProperties([
-          'domain_id_drupal' => $domain->id()
+          'domain_id_drupal' => self::getCurrentDomainId()
         ]);
         if ($domain_ovh_entities) {
           /**
@@ -100,7 +101,7 @@ class lesroidelareno {
            */
           $domain_ovh_entity = reset($domain_ovh_entities);
           if ($domain_ovh_entity->getOwnerId() == self::getCurrentUserId())
-            self::$AuthorOfDomaine = $domain->id();
+            self::$AuthorOfDomaine = self::getCurrentDomainId();
         }
         // Dans la mesure ou le cache n'avais pas cette information on l'ajoute.
         self::setDataCache('AuthorOfDomaine', self::$AuthorOfDomaine);
@@ -191,18 +192,12 @@ class lesroidelareno {
         }
         else {
           self::$userIsAdministratorSite = false;
-          /**
-           *
-           * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
-           */
-          $domain_source = \Drupal::service('domain_source.path_processor');
-          $domain = $domain_source->getActiveDomain();
-          if ($domain && self::isOwnerSite()) {
+          if (self::isOwnerSite()) {
             $uid = self::getCurrentUserId();
             $user = \Drupal\user\Entity\User::load($uid);
             $domaines = $user->get('field_domain_admin')->getValue();
             foreach ($domaines as $value) {
-              if ($value['target_id'] == $domain->id()) {
+              if ($value['target_id'] == self::getCurrentDomainId()) {
                 self::$userIsAdministratorSite = true;
                 break;
               }
@@ -216,6 +211,36 @@ class lesroidelareno {
       }
     }
     return self::$userIsAdministratorSite;
+  }
+  
+  /**
+   * Permet de determiner l'id du domaine encours.
+   *
+   * @return string // l'id du nom de domaine.
+   */
+  static public function getCurrentDomainId() {
+    if (self::$currentDomainId === NULL) {
+      if (isset(self::$cacheAPCu['currentDomainId'])) {
+        // pour se cat specifique, on ne fait pas de getCahe ( car cela
+        // provequera une boucle et fonctionnellement c'est un element qui doit
+        // etre verifier aumoins une foix pour chaque initialisation du cache )
+        self::$currentDomainId = self::$cacheAPCu['currentDomainId'];
+      }
+      else {
+        /**
+         *
+         * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
+         */
+        $domain_source = \Drupal::service('domain_source.path_processor');
+        $domain = $domain_source->getActiveDomain();
+        self::$currentDomainId = $domain->id();
+        /**
+         * On ajoute cela en cache,
+         */
+        self::$cacheAPCu['currentDomainId'] = self::$currentDomainId;
+      }
+    }
+    return self::$currentDomainId;
   }
   
   /**
@@ -240,32 +265,31 @@ class lesroidelareno {
    * @param array $cacheAPCu
    */
   public static function setDataCache($key, $value) {
-    if (self::getCurrentUserId()) {
-      if ($value === NULL)
-        throw new Error("La valeur de stockage ne doit pas etre NULL " . $key);
-      /**
-       *
-       * @var \Symfony\Component\HttpFoundation\Session\Session $session
-       */
-      $session = \Drupal::service('session');
-      if (!$session->has(self::keySession())) {
-        $session->set(self::keySession(), Crypt::randomBytesBase64());
-      }
-      $key_APCu = self::keyACPu();
-      // $oldCacheStatic = self::$cacheAPCu;
-      $oldCacheFromAPCu = self::getCacheAPCu();
-      self::$cacheAPCu = $oldCacheFromAPCu;
-      self::$cacheAPCu[$key] = $value;
-      
-      /**
-       * On stocke les variables pour 1h.
-       * (un temps tres eleve augmentera les risques de fails).
-       * ( il faudra determiner la durée moyenne des sessions via google ou
-       * autre ).
-       */
-      if (!apcu_store($key_APCu, self::$cacheAPCu, 3600))
-        \Drupal::messenger()->addError('Error cache to save key : ' . $key);
+    // aucune raison d'empecher les anonyme d'avoir leur cache.
+    // if (self::getCurrentUserId()) {
+    if ($value === NULL)
+      throw new Error("La valeur de stockage ne doit pas etre NULL " . $key);
+    /**
+     *
+     * @var \Symfony\Component\HttpFoundation\Session\Session $session
+     */
+    $session = \Drupal::service('session');
+    if (!$session->has(self::keySession())) {
+      $session->set(self::keySession(), Crypt::randomBytesBase64());
     }
+    $key_APCu = self::keyACPu();
+    // On n'efface pas et ne modifie pas le contenu du cache encours.
+    self::$cacheAPCu[$key] = $value;
+    
+    /**
+     * On stocke les variables pour 2h.
+     * (un temps tres eleve augmentera les risques de fails).
+     * ( il faudra determiner la durée moyenne des sessions via google ou
+     * autre ).
+     */
+    if (!apcu_store($key_APCu, self::$cacheAPCu, 7200))
+      \Drupal::messenger()->addError('Error cache to save key : ' . $key);
+    // }
   }
   
   /**
@@ -274,7 +298,6 @@ class lesroidelareno {
    * @return array|mixed
    */
   public static function getCacheAPCu() {
-    // self::$cacheAPCu = [];
     /**
      *
      * @var \Symfony\Component\HttpFoundation\Session\Session $session
@@ -283,18 +306,17 @@ class lesroidelareno {
     if ($session->has(self::keySession())) {
       $key_APCu = self::keyACPu();
       $vals = apcu_fetch($key_APCu);
-      // $db = [
-      // 'cacheFromAPCu' => $vals,
-      // 'cacheStatic-Begin' => self::$cacheAPCu,
-      // 'key_APCu' => $key_APCu
-      // ];
-      if ($vals)
-        self::$cacheAPCu = $vals;
-      
-      // $db['cacheStatic-End'] = self::$cacheAPCu;
-      // \Stephane888\Debug\debugLog::SaveLogsDrupal($db, 'getCacheAPCu');
+      if ($vals) {
+        // le cache peut avoir des données ajouter de maniere statique, donc on
+        // ne reset pas le cache on surcharge la valeur des clées.
+        foreach ($vals as $k => $value) {
+          // les données dans le $cacheAPCu sont prioritaire sur ceux dans la
+          // memoire.
+          if (!isset(self::$cacheAPCu[$k]))
+            self::$cacheAPCu[$k] = $value;
+        }
+      }
     }
-    
     return self::$cacheAPCu;
   }
   
@@ -314,8 +336,15 @@ class lesroidelareno {
     return NULL;
   }
   
+  /**
+   * On cree la clée de session en function du domaine encours et de l'id de
+   * l'utilisateur.
+   * ( Les anonymes, ils ont les memes access ).
+   *
+   * @return string
+   */
   public static function keySession() {
-    return "lesroidelareno.id_session." . self::getCurrentUserId();
+    return self::getCurrentDomainId() . ".id_session." . self::getCurrentUserId();
   }
   
   public static function keyACPu() {
