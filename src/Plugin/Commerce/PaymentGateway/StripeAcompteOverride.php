@@ -85,7 +85,6 @@ class StripeAcompteOverride extends StripeAcompte {
         $this->configuration['mode'] = $this->commerce_payment_config->getMode();
         $this->configuration['percent_value'] = (int) $this->commerce_payment_config->getPercentValue();
         $this->configuration['min_value_paid'] = (int) $this->commerce_payment_config->getMinValuePaid();
-        \Stephane888\Debug\debugLog::kintDebugDrupal($this->configuration, 'updateConfigs', true);
         $this->configIsUpdate = true;
       }
       else {
