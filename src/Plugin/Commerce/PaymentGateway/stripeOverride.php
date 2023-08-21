@@ -88,6 +88,7 @@ class stripeOverride extends Stripe {
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
     $form['display_label']['#access'] = TRUE;
+    return $form;
   }
   
   // /**
