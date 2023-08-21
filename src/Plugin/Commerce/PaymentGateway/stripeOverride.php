@@ -4,15 +4,7 @@ namespace Drupal\lesroidelareno\Plugin\Commerce\PaymentGateway;
 
 use Drupal\commerce_stripe\Plugin\Commerce\PaymentGateway\Stripe;
 use Drupal\domain\DomainNegotiatorInterface;
-use Drupal\commerce_price\MinorUnitsConverterInterface;
-use Drupal\commerce_payment\PaymentMethodTypeManager;
-use Drupal\commerce_payment\PaymentTypeManager;
-use Drupal\Component\Datetime\TimeInterface;
-use Drupal\Component\Uuid\UuidInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Extension\ModuleExtensionList;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Stripe\Stripe as StripeLibrary;
 
 /**
@@ -23,7 +15,7 @@ use Stripe\Stripe as StripeLibrary;
  *
  * @CommercePaymentGateway(
  *   id = "lesroidelareno_stripe_override",
- *   label = "Stripe by lesroidelareno",
+ *   label = "Stripe(default) by lesroidelareno",
  *   display_label = "Payer la totalité",
  *   forms = {
  *     "add-payment-method" = "Drupal\lesroidelareno\PluginForm\Stripe\PaymentMethodAddFormOverride",
@@ -86,6 +78,16 @@ class stripeOverride extends Stripe {
     $this->updateConfigs();
     parent::__wakeup();
     $this->init();
+  }
+  
+  /**
+   *
+   * {@inheritdoc}
+   * @see \Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\PaymentGatewayBase::buildConfigurationForm()
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form = parent::buildConfigurationForm($form, $form_state);
+    $form['display_label']['#access'] = TRUE;
   }
   
   // /**

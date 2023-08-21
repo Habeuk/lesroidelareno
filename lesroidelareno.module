@@ -62,16 +62,8 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
         break;
     }
     if ($setDomaine) {
-      /**
-       *
-       * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
-       */
-      $domain_source = \Drupal::service('domain_source.path_processor');
-      $domain = $domain_source->getActiveDomain();
-      if ($domain) {
-        $entity->set(DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD, $domain->id());
-        $entity->set(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD, $domain->id());
-      }
+      $entity->set(DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD, lesroidelareno::getCurrentDomainId());
+      $entity->set(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD, lesroidelareno::getCurrentDomainId());
     }
     elseif ($entity_id == 'paragraph' && $entity_id == 'menu_link_content') {
       /**
@@ -106,14 +98,7 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
     elseif ($entity_id == 'user') {
       $domaines = $entity->get('field_domain_access')->getValue();
       if (!$domaines) {
-        /**
-         *
-         * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
-         */
-        $domain_source = \Drupal::service('domain_source.path_processor');
-        $domain = $domain_source->getActiveDomain();
-        if ($domain)
-          $entity->set('field_domain_access', $domain->id());
+        $entity->set('field_domain_access', lesroidelareno::getCurrentDomainId());
       }
     }
     else {
@@ -706,13 +691,6 @@ function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface
  * @param \Drupal\mysql\Driver\Database\mysql\Select $query
  */
 function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterface $query) {
-  /**
-   *
-   * @var \Drupal\domain\DomainNegotiator $domain
-   */
-  $domain = \Drupal::service('domain.negotiator');
-  // \Stephane888\Debug\debugLog::kintDebugDrupal($query->__toString(),
-  // 'lesroidelareno_query_alter', true);
   
   /**
    * On filtre les produits dans le panier en fonction du domaine encours.
@@ -721,7 +699,9 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     $query->addJoin('INNER', 'commerce_order_item', 'coi', 'coi.order_id=commerce_order.order_id');
     $query->addJoin('INNER', 'commerce_product_variation_field_data', 'prd_va', 'prd_va.variation_id=coi.purchased_entity');
     $query->addJoin('INNER', 'commerce_product__field_domain_access', 'prd_da', 'prd_da.entity_id=prd_va.product_id');
-    $query->condition('prd_da.field_domain_access_target_id', $domain->getActiveId());
+    $query->condition('prd_da.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+    // dump('1=> ' . $query->__toString());
+    // dump(lesroidelareno::getCurrentDomainId());
   }
 }
 
@@ -732,11 +712,6 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
  * @param \Drupal\Core\Database\Query\AlterableInterface $query
  */
 function lesroidelareno_query_entity_reference_alter(\Drupal\mysql\Driver\Database\mysql\Select $query) {
-  /**
-   *
-   * @var \Drupal\domain\DomainNegotiator $domain
-   */
-  $domain = \Drupal::service('domain.negotiator');
   
   /**
    *
@@ -751,64 +726,66 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\mysql\Driver\Databa
     switch ($settings['target_type']) {
       case 'node':
         $query->addJoin('INNER', 'node__field_domain_access', 'fda', 'fda.entity_id=base_table.nid');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'commerce_product':
         $query->addJoin('INNER', 'commerce_product__field_domain_access', 'fda', 'fda.entity_id=base_table.product_id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'blocks_contents':
         $query->addJoin('INNER', 'blocks_contents__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'site_internet_entity':
         $query->addJoin('INNER', 'site_internet_entity__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'block_content':
         $query->addJoin('INNER', 'block_content__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'paragraph':
         $query->addJoin('INNER', 'paragraph__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break; //
       case 'model_cv':
         $query->addJoin('INNER', 'model_cv__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'cv_entity':
         $query->addJoin('INNER', 'cv_entity__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       // on doit également ajouté le fitre pour les elements suivants :
       case 'commerce_payment':
         $query->addJoin('INNER', 'commerce_payment__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'commerce_payment_method':
         $query->addJoin('INNER', 'commerce_payment_method__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'commerce_order':
         $query->addJoin('INNER', 'commerce_order__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
+        // dump('2=> ' . $query->__toString());
         break;
       case 'commerce_order_item':
         $query->addJoin('INNER', 'commerce_order_item__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', $domain->getActiveId());
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
+        // dump('3=> ' . $query->__toString());
         break;
       case 'site_type_datas':
       case 'taxonomy_term':
@@ -934,12 +911,6 @@ function _rdv_config_entity_form_submit(array &$form, FormStateInterface $form_s
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function lesroidelareno_form_menu_form_alter(&$form, FormStateInterface $form_state) {
-  /**
-   *
-   * @var \Drupal\domain_source\HttpKernel\DomainSourcePathProcessor $domain_source
-   */
-  $domain_source = \Drupal::service('domain_source.path_processor');
-  $domain = $domain_source->getActiveDomain();
   // Load the current node type configuration entity.
   /**
    *
@@ -949,7 +920,7 @@ function lesroidelareno_form_menu_form_alter(&$form, FormStateInterface $form_st
   $form['domain_id'] = [
     '#type' => 'textfield',
     '#title' => t('Domain Id'),
-    '#default_value' => $menu->getThirdPartySetting('lesroidelareno', 'domain_id', $domain->id())
+    '#default_value' => $menu->getThirdPartySetting('lesroidelareno', 'domain_id', lesroidelareno::getCurrentDomainId())
   ];
   $form['#entity_builders'][] = 'lesroidelareno_form_menu_form_builder';
 }
