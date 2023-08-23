@@ -1,1 +1,31 @@
-<h1> test de mail via template </h1>
+<div class="container">
+	<div class="sub-container">
+	    {% if top %}
+    		<div class="top-header">
+    			{{top}}
+    		</div>
+		{% endif %}
+		{% if heaber %}
+    		<header class="header">
+    			{{heaber}}
+    		</header>
+		{% endif %}
+		{% if description %}
+    		<div class="description">
+    			{{description}}
+    		</div>
+		{% endif %}
+		{% if footer %}
+    		<div class="footer">
+    			{{footer}}
+    		</div>
+		{% endif %}
+		{% if bottom %}
+    		<div class="bottom">
+    			{{bottom}}
+    		</div>
+		{% endif %}
+	</div>
+</div>
+
+

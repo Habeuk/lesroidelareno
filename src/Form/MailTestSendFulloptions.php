@@ -143,6 +143,7 @@ class MailTestSendFulloptions extends ConfigFormBase {
     $mailbox = new MailboxHeader('From', new Address($email_from, "Wb-Horizon"));
     $datas['headers']['From'] = $mailbox->getBodyAsString();
     $result = $this->pluginManagerMail->mail($datas);
+    dd($result);
     if ($result)
       $this->messenger()->addStatus("le mail a été envoter à : " . $form_state->getValue('destinataire'));
     else

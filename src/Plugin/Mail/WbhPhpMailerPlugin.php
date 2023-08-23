@@ -67,7 +67,17 @@ class WbhPhpMailerPlugin extends MimeMail {
    * @see \Drupal\Core\Mail\Plugin\Mail\PhpMail::mail()
    */
   public function mail(array $message) {
+    // si les données sont dans un array render.
+    if (is_array($message['body']) && $message['body']['#theme']) {
+      /**
+       *
+       * @var \Drupal\Core\Render\Renderer $renderer
+       */
+      $renderer = \Drupal::service('renderer');
+      $message['body'] = $renderer->renderPlain($message['body']);
+    }
     $message = $this->format($message);
+    dump($message);
     return parent::mail($message);
   }
   
