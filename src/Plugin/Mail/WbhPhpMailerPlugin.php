@@ -33,7 +33,7 @@ class WbhPhpMailerPlugin extends MimeMail {
    */
   public function format(array $message) {
     // si les données sont dans un array render.
-    if (is_array($message['body']) && $message['body']['#theme']) {
+    if (is_array($message['body']) && !empty($message['body']['#theme'])) {
       /**
        *
        * @var \Drupal\Core\Render\Renderer $renderer
@@ -194,7 +194,6 @@ class WbhPhpMailerPlugin extends MimeMail {
    * @see \Drupal\Core\Mail\Plugin\Mail\PhpMail::mail()
    */
   public function mail(array $message) {
-    dump($message);
     return parent::mail($message);
   }
   
