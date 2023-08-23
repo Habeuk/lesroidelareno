@@ -1,0 +1,10 @@
+.container{	
+	background-color: #ccc;
+	padding: 5rem;
+}
+
+.sub-container{
+	max-width: 800px;
+	border:1px solid #9cc;
+	background-color: #fff;
+}

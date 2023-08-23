@@ -230,13 +230,22 @@ function lesroidelareno_theme() {
         'footer' => null,
         'bottom' => null
       ]
+    ],
+    'lesroidelareno_main_mail' => [
+      'variables' => [
+        'module' => '',
+        'key' => '',
+        'recipient' => '',
+        'subject' => '',
+        'body' => ''
+      ]
     ]
   ];
   return $hooks;
 }
 
 function lesroidelareno_preprocess_wbh_php_mailer_plugin_mail(&$vars) {
-  // dump($vars);
+  // $vars['#attached']['library'][] = 'lesroidelareno/lesroidelareno_mail';
 }
 
 // function lesroidelareno_preprocess_formatage_models_quickly_edit(&$vars) {

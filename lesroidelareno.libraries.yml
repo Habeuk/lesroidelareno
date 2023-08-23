@@ -1,3 +1,7 @@
+lesroidelareno_mail:
+  css:
+    component:
+      css/lesroidelareno-mail.css: {}
 lesroidelareno_pagination:
   css:
     component:
