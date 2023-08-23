@@ -1,7 +1,8 @@
 <div class="container">
 	<div class="sub-container">
+		{% if logo_url %} <div class="content-logo"> <img src="{{ logo_url }}" style="max-width:300px; max-height:200px;" /> </div> {% endif %}
 	    {% if top %}
-    		<div class="top-header">
+    		<div class="top-header">    		
     			{{top}}
     		</div>
 		{% endif %}
