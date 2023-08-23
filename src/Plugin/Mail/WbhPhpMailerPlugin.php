@@ -67,8 +67,7 @@ class WbhPhpMailerPlugin extends MimeMail {
    * @see \Drupal\Core\Mail\Plugin\Mail\PhpMail::mail()
    */
   public function mail(array $message) {
-    // \Stephane888\Debug\debugLog::kintDebugDrupal($message,
-    // 'TestPhpMailerPlugin--', true);
+    $message = $this->format($message);
     return parent::mail($message);
   }
   
