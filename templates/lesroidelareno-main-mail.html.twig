@@ -43,6 +43,9 @@
     .content-logo{
     	margin-left: auto;
         margin-right: auto;
+        display: flex;
+    	justify-content: center;
+    	padding-top: 1rem;
     }
     .sub-container{
     	max-width: 600px;
@@ -50,11 +53,22 @@
         background-color: #fff;
         margin-left: auto;
         margin-right: auto;
-        padding: 1rem;
+        padding: 0;
+    }
+    .sub-container .description, .sub-container .header{
+    	padding:1rem;
     }
     .footer{
     	background-color: #647397;
     	padding: 2rem 1rem;
+    }
+    @media only screen and (min-width: 600px)  {
+    	.sub-container{
+        	padding: 4rem;
+    	}
+    	.sub-container .description, .sub-container .header{
+    		padding: 2rem;
+    	}
     }
     </style>
     {% if css %}
