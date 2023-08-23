@@ -131,7 +131,8 @@ class MailTestSendFulloptions extends ConfigFormBase {
       'subject' => $form_state->getValue('sujet'),
       'body' => [
         '#theme' => 'wbh_php_mailer_plugin_mail',
-        '#description' => $form_state->getValue('message_brute') . $form_state->getValue('message_html')['value']
+        '#description' => $form_state->getValue('message_brute') . $form_state->getValue('message_html')['value'],
+        '#footer' => 'Run at : ' . time()
       ],
       'headers' => [
         'From' => $email_from,
