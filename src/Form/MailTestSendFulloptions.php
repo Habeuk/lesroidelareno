@@ -129,7 +129,10 @@ class MailTestSendFulloptions extends ConfigFormBase {
     $datas = [
       'to' => $form_state->getValue('name') . " <" . $form_state->getValue('destinataire') . ">",
       'subject' => $form_state->getValue('sujet'),
-      'body' => $form_state->getValue('message_brute') . $form_state->getValue('message_html')['value'],
+      'body' => [
+        '#theme' => 'wbh_php_mailer_plugin_mail',
+        '#description' => $form_state->getValue('message_brute') . $form_state->getValue('message_html')['value']
+      ],
       'headers' => [
         'From' => $email_from,
         'Sender' => $email_from,
@@ -139,9 +142,8 @@ class MailTestSendFulloptions extends ConfigFormBase {
     //
     $mailbox = new MailboxHeader('From', new Address($email_from, "Wb-Horizon"));
     $datas['headers']['From'] = $mailbox->getBodyAsString();
-    //
-    $message = $this->pluginManagerMail->format($datas);
-    if ($this->pluginManagerMail->mail($message))
+    $result = $this->pluginManagerMail->mail($datas);
+    if ($result)
       $this->messenger()->addStatus("le mail a été envoter à : " . $form_state->getValue('destinataire'));
     else
       $this->messenger()->addError("Erreur d'envoit de mail à " . $form_state->getValue('destinataire'));

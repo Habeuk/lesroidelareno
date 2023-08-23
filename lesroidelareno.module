@@ -214,15 +214,27 @@ function __prise_rendez_vous_fields_domain(array &$fields) {
  */
 function lesroidelareno_theme() {
   $hooks = [
-    // permet de fournir un titre et une description.
+    // Permet de fournir un titre et une description.
     'lesroidelareno_texte_help' => [
       'variables' => [
         'titre' => null,
         'description' => null
       ]
+    ],
+    // formater de mail par defaut.
+    'wbh_php_mailer_plugin_mail' => [
+      'top' => null,
+      'heaber' => null,
+      'description' => null,
+      'footer' => null,
+      'bottom' => null
     ]
   ];
   return $hooks;
+}
+
+function lesroidelareno_preprocess_wbh_php_mailer_plugin_mail(&$vars) {
+  dump($vars);
 }
 
 // function lesroidelareno_preprocess_formatage_models_quickly_edit(&$vars) {
