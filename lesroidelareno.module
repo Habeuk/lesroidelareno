@@ -711,7 +711,8 @@ function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface
     'revision_log',
     'langcode',
     'wbh_user_id',
-    'user_id'
+    'user_id',
+    'field_domain_admin'
   ];
   
   if (in_array($field_definition->getName(), $disabledFields)) {
