@@ -52,6 +52,8 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
      */
     $setDomaine = false;
     switch ($entity_id) {
+      case 'booking_reservation':
+      case 'bks_autoecole_heures':
       case 'commerce_order': // identification du checkout
       case 'commerce_order_item': // identification des elemnts du panier.
       case 'commerce_payment': // identification d'un paiement
