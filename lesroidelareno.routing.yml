@@ -15,7 +15,7 @@ lesroidelareno.mail_test_send_fulloptions:
     _permission: 'access administration pages'
   options:
     _admin_route: TRUE
-#permet gerer les rdvs.
+# permet gerer les rdvs.
 lesroidelareno.manage_rdv_configs:
   path: '/admin/lesroidelareno/prise-rendez-vous/update-default-configs'
   defaults:
@@ -25,7 +25,7 @@ lesroidelareno.manage_rdv_configs:
     _permission: 'access content'
     _role: 'gerant_de_site_web+administrator'
     
-#permet gerer les moyens de payement.
+# permet gerer les moyens de payement.
 lesroidelareno.payement_gateways:
   path: '/admin/lesroidelareno/payement-gateways/{payment_plugin_id}'
   defaults:
