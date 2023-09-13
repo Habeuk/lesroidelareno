@@ -60,6 +60,12 @@ class lesroidelareno {
    * @var string
    */
   private static $currentDomainId = NULL;
+  /**
+   * Id du domaine encours.
+   *
+   * @var string
+   */
+  private static $currentPrefixDomain = NULL;
   
   /**
    * Pour ce dernier on utilise pas de cache.
@@ -129,10 +135,10 @@ class lesroidelareno {
    */
   static public function isAdministrator() {
     if (self::$isAdministrator == NULL) {
-      // on commence par verifier dans le cache APCu.
+      // On commence par verifier dans le cache APCu.
       if (!self::$cacheAPCu)
         self::getCacheAPCu();
-      // recuperation à partir du cache.
+      // Recuperation à partir du cache.
       if (isset(self::$cacheAPCu['isAdministrator'])) {
         self::$isAdministrator = self::$cacheAPCu['isAdministrator'];
       }
@@ -241,6 +247,39 @@ class lesroidelareno {
       }
     }
     return self::$currentDomainId;
+  }
+  
+  /**
+   * Retourne le prefix du domaine encours.
+   * Ce parametre est important car il peut etre utiliser comme #id pour les
+   * types d'entites car sa valeur est bien en dessous des 32 max.
+   */
+  static public function getCurrentPrefixDomain() {
+    if (self::$currentPrefixDomain === NULL) {
+      if (isset(self::$cacheAPCu['currentPrefixDomain'])) {
+        self::$currentPrefixDomain = self::$cacheAPCu['currentPrefixDomain'];
+      }
+      else {
+        $domain_ovh_entities = \Drupal::entityTypeManager()->getStorage('domain_ovh_entity')->loadByProperties([
+          'domain_id_drupal' => self::getCurrentDomainId()
+        ]);
+        if ($domain_ovh_entities) {
+          /**
+           *
+           * @var \Drupal\ovh_api_rest\Entity\DomainOvhEntity $domain_ovh_entity
+           */
+          $domain_ovh_entity = reset($domain_ovh_entities);
+          /**
+           * cette chaine peut contenir "-" qui n'est pas valide pour
+           * certains entitées.
+           * ( du coup on remplace car la majorité des entitées exigent "_" ).
+           */
+          self::$currentPrefixDomain = str_replace("-", "_", $domain_ovh_entity->getsubDomain());
+          self::setDataCache('currentPrefixDomain', self::$currentPrefixDomain);
+        }
+      }
+    }
+    return self::$currentPrefixDomain;
   }
   
   /**

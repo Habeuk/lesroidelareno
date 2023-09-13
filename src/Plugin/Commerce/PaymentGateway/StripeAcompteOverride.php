@@ -73,7 +73,8 @@ class StripeAcompteOverride extends StripeAcompte {
     if (!$this->configIsUpdate && !in_array(\Drupal::routeMatch()->getRouteName(), $DirectAccessRoutes)) {
       if (!$this->commerce_payment_config) {
         $datas = \Drupal::entityTypeManager()->getStorage("commerce_payment_config")->loadByProperties([
-          'domain_id' => lesroidelareno::getCurrentDomainId()
+          'domain_id' => lesroidelareno::getCurrentDomainId(),
+          'payment_plugin_id' => 'paiement_acompte'
         ]);
         if ($datas)
           $this->commerce_payment_config = reset($datas);

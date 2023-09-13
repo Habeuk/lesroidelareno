@@ -402,51 +402,8 @@ function lesroidelareno_editor_js_settings_alter(array &$settings) {
  */
 function lesroidelareno_preprocess_html(&$vars) {
   $routeName = \Drupal::routeMatch()->getRouteName();
-  // $config = ConfigDrupal::config("system.site");
-  // dump($config);
-  /**
-   * charge une route.
-   *
-   * @var \Drupal\Core\Routing\RouteProvider $router
-   */
-  // $router = \Drupal::service("router.route_provider");
-  // $r1 = $router->getRouteByName("entity.booking_config.add_form");
-  // dump($r1);
-  
   //
-  //
-  // $parameters = \Drupal::routeMatch()->getParameters()->all();
-  // $parameters = \Drupal::routeMatch()->getParameters()->all();
-  // if (!empty($parameters['content_generate_entity'])) {
-  // /**
-  // *
-  // * @var \Drupal\generate_mapping_content\Entity\ContentGenerateEntity
-  // $contentGenerate
-  // */
-  // $contentGenerate = $parameters['content_generate_entity'];
-  // $intro = $contentGenerate->get('introduction')->value;
-  // $metaDescription = [
-  // '#tag' => 'meta',
-  // '#attributes' => [
-  // 'name' => 'description',
-  // 'content' => strip_tags($intro)
-  // ]
-  // ];
-  // $vars['page']['#attached']['html_head'][] = [
-  // $metaDescription,
-  // 'meta-description'
-  // ];
-  // }
-  // else {
-  // $vars['page']['#attached']['library'][] = 'login_rx_vuejs/vuejs_dev';
-  // }
-  //
-  // On charge tawk sur les routes non admin.
-  $hidden = false;
-  $idUser = \Drupal::currentUser()->id();
-  
-  //
-  if (!str_contains($routeName, 'system.admin') && !$hidden && $idUser != 1) {
+  if (!str_contains($routeName, 'system.admin')) {
     $vars['page']['#attached']['library'][] = 'lesroidelareno/lesroidelareno_tawk.config';
   }
   // On ajoute la class 'container' sur tous les pages de termes taxo.

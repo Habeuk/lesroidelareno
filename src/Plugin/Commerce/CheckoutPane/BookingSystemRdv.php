@@ -34,13 +34,13 @@ class BookingSystemRdv extends CheckoutPaneBase implements CheckoutPaneInterface
       '#tag' => 'div',
       '#value' => 'Veuillez selectionner une date et un creneau'
     ];
-    $booking_config_type_id = lesroidelareno::getCurrentDomainId();
-    $urlCalendar = Url::fromRoute("booking_system.app_load_config_calendar");
-    $urlCreneaux = Url::fromRoute("booking_system.app_load_creneaux", [
+    $booking_config_type_id = lesroidelareno::getCurrentPrefixDomain();
+    $urlCalendar = Url::fromRoute("lesroidelareno.booking_system.app_load_config_calendar");
+    $urlCreneaux = Url::fromRoute("lesroidelareno.booking_system.app_load_creneaux", [
       'booking_config_type_id' => $booking_config_type_id,
       'date' => null
     ]);
-    $urlSave = Url::fromRoute("booking_system.save_reservation", [
+    $urlSave = Url::fromRoute("lesroidelareno.booking_system.save_reservation", [
       'booking_config_type_id' => $booking_config_type_id
     ]);
     $pane_form['content_form'] = [
@@ -52,8 +52,7 @@ class BookingSystemRdv extends CheckoutPaneBase implements CheckoutPaneInterface
         'data-url-creneaux' => '/' . $urlCreneaux->getInternalPath(),
         'data-url-save' => '/' . $urlSave->getInternalPath(),
         'class' => [
-          'm-5',
-          'p-5'
+          'my-5'
         ]
       ]
     ];
@@ -69,20 +68,19 @@ class BookingSystemRdv extends CheckoutPaneBase implements CheckoutPaneInterface
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    //
     return $form;
   }
   
-  public function buildPaneSummary() {
-    $summary = parent::buildPaneSummary();
-    $summary['html_reservation'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'div',
-      '#value' => 'Formulaire de reservation'
-    ];
-    return $summary;
-  }
-  
+  // On desactive cela, car le module ne le supporte pas pour l'instant.
+  // public function buildPaneSummary() {
+  // $summary = parent::buildPaneSummary();
+  // $summary['html_reservation'] = [
+  // '#type' => 'html_tag',
+  // '#tag' => 'div',
+  // '#value' => 'Formulaire de reservation'
+  // ];
+  // return $summary;
+  // }
   public function submitPaneForm(array &$pane_form, FormStateInterface $form_state, array &$complete_form) {
     //
     parent::submitPaneForm($pane_form, $form_state, $complete_form);

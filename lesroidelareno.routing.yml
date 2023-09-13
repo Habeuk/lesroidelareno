@@ -1,3 +1,39 @@
+####################################################
+######    Default route for booking system    ######
+lesroidelareno.booking_system.app_load_config_calendar:
+  path: "/api/v1/booking-system/views-app-calendar"
+  defaults:
+    _title: "Load config calendar"
+    _controller: '\Drupal\lesroidelareno\Controller\BookingSystemUseAppLesroidelareno::loadConfigCalandar'
+  requirements:
+    _permission: "souscription booking_system"
+  methods: [GET]
+  options:
+      _auth: ['basic_auth', 'cookie']
+
+lesroidelareno.booking_system.app_load_creneaux:
+  path: "/api/v1/booking-system/views-app-creneaux/{booking_config_type_id}/{date}"
+  defaults:
+    _title: "Load configs creneaux"
+    _controller: '\Drupal\lesroidelareno\Controller\BookingSystemUseAppLesroidelareno::loadConfisCreneaux'
+    date: null
+  requirements:
+    _permission: "souscription booking_system"
+  methods: [GET]
+  options:
+      _auth: ['basic_auth', 'cookie']
+
+lesroidelareno.booking_system.save_reservation:
+  path: "/api/v1/booking-system/save-reservation/{booking_config_type_id}"
+  defaults:
+    _title: "Reservation"
+    _controller: '\Drupal\lesroidelareno\Controller\BookingSystemUseAppLesroidelareno::SaveReservation'
+  requirements:
+    _user_is_logged_in: "TRUE"
+  options:
+    _auth: ["basic_auth", "cookie"]  
+###################################################
+
 lesroidelareno.clean_configs:
   path: '/admin/config/development/lesroidelareno/clean-config/{theme_name}'
   defaults:

@@ -6,6 +6,7 @@ use Drupal\commerce_stripe\Plugin\Commerce\PaymentGateway\Stripe;
 use Drupal\domain\DomainNegotiatorInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Stripe\Stripe as StripeLibrary;
+use Drupal\lesroidelareno\lesroidelareno;
 
 /**
  * Provides the Stripe payment gateway.
@@ -46,13 +47,10 @@ class stripeOverride extends Stripe {
     ];
     if (!in_array(\Drupal::routeMatch()->getRouteName(), $DirectAccessRoutes)) {
       if (!$this->commerce_payment_config) {
-        /**
-         *
-         * @var DomainNegotiatorInterface $negotiator
-         */
-        $negotiator = \Drupal::service('domain.negotiator');
+        
         $datas = \Drupal::entityTypeManager()->getStorage("commerce_payment_config")->loadByProperties([
-          'domain_id' => $negotiator->getActiveId()
+          'domain_id' => lesroidelareno::getCurrentDomainId(),
+          'payment_plugin_id' => 'paiement_acompte'
         ]);
         if ($datas)
           $this->commerce_payment_config = reset($datas);
