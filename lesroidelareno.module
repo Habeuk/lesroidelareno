@@ -261,7 +261,10 @@ function lesroidelareno_preprocess_wbh_php_mailer_plugin_mail(&$vars) {
      */
     $config_theme_entity = reset($config_theme_entity);
     $url = $config_theme_entity->getLogo();
-    $vars['logo_url'] = \Drupal::service('file_url_generator')->generateAbsoluteString($url);
+    if ($url)
+      $vars['logo_url'] = \Drupal::service('file_url_generator')->generateAbsoluteString($url);
+    else
+      $vars['logo_url'] = '';
   }
 }
 
