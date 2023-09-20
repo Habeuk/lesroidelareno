@@ -36,7 +36,7 @@ class BookingSystemRdv extends CheckoutPaneBase implements CheckoutPaneInterface
       '#value' => 'Veuillez selectionner une date et un creneau'
     ];
     $booking_config_type_id = lesroidelareno::getCurrentPrefixDomain();
-    $entityConfig = $this->entityTypeManager()->getStorage("booking_config_type")->load($booking_config_type_id);
+    $entityConfig = \Drupal::entityTypeManager()->getStorage("booking_config_type")->load($booking_config_type_id);
     if (!$booking_config_type_id || !$entityConfig) {
       /**
        * Pour la configuration par defaut.
