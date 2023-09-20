@@ -23,6 +23,7 @@ use Drupal\lesroidelareno\lesroidelareno;
  * )
  */
 class BookingSystemRdv extends CheckoutPaneBase implements CheckoutPaneInterface {
+  protected static $default_id = 'wb_horizon_com';
   
   /**
    *
@@ -35,6 +36,14 @@ class BookingSystemRdv extends CheckoutPaneBase implements CheckoutPaneInterface
       '#value' => 'Veuillez selectionner une date et un creneau'
     ];
     $booking_config_type_id = lesroidelareno::getCurrentPrefixDomain();
+    $entityConfig = $this->entityTypeManager()->getStorage("booking_config_type")->load($booking_config_type_id);
+    if (!$booking_config_type_id || !$entityConfig) {
+      /**
+       * Pour la configuration par defaut.
+       */
+      $booking_config_type_id = self::$default_id;
+    }
+    
     $urlCalendar = Url::fromRoute("lesroidelareno.booking_system.app_load_config_calendar");
     $urlCreneaux = Url::fromRoute("lesroidelareno.booking_system.app_load_creneaux", [
       'booking_config_type_id' => $booking_config_type_id,
