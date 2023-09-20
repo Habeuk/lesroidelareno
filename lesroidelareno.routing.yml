@@ -41,9 +41,8 @@ lesroidelareno.booking_system.save_reservation:
     _title: "Reservation"
     _controller: '\Drupal\lesroidelareno\Controller\BookingSystemUseAppLesroidelareno::SaveReservation'
   requirements:
-    _user_is_logged_in: "TRUE"
-  options:
-    _auth: ["basic_auth", "cookie"]  
+    _permission: "access content"
+    
 ###################################################
 
 lesroidelareno.clean_configs:
