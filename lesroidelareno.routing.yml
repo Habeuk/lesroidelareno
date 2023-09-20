@@ -9,6 +9,16 @@ lesroidelareno.booking_system.app_load_config_calendar:
     _permission: "access content"
   methods: [GET,POST]
 
+lesroidelareno.booking_system.app_load_creneaux:
+  path: "/api/v1/booking-system/views-app-creneaux/{booking_config_type_id}/{date}"
+  defaults:
+    _title: "Load configs creneaux"
+    _controller: '\Drupal\lesroidelareno\Controller\BookingSystemUseAppLesroidelareno::loadConfisCreneaux'
+    date: null
+  requirements:
+    _permission: "access content"
+  methods: [GET,POST]
+
 lesroidelareno.booking_system.config.default:
   path: '/admin/api/v1/booking-system/configure-default'
   defaults:
@@ -24,18 +34,6 @@ lesroidelareno.booking_system.config_resume:
     _controller: '\Drupal\lesroidelareno\Controller\BSAutoEcoleConfigResumeController::ConfigResume'
   requirements:
     _role: 'gerant_de_site_web+administrator'
-
-lesroidelareno.booking_system.app_load_creneaux:
-  path: "/api/v1/booking-system/views-app-creneaux/{booking_config_type_id}/{date}"
-  defaults:
-    _title: "Load configs creneaux"
-    _controller: '\Drupal\lesroidelareno\Controller\BookingSystemUseAppLesroidelareno::loadConfisCreneaux'
-    date: null
-  requirements:
-    _permission: "souscription booking_system"
-  methods: [GET]
-  options:
-      _auth: ['basic_auth', 'cookie']
 
 lesroidelareno.booking_system.save_reservation:
   path: "/api/v1/booking-system/save-reservation/{booking_config_type_id}"
