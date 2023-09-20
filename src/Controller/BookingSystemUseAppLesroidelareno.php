@@ -26,10 +26,10 @@ class BookingSystemUseAppLesroidelareno extends BookingSystemUseApp {
   
   /**
    * Permet de charger la configuration par defaut.
-   * ( Actuelment pour les tests ).
    */
   public function loadConfigCalandar(Request $Request) {
     $booking_config_type_id = lesroidelareno::getCurrentPrefixDomain();
+    
     // return HttpResponse::response($configs);
     return $this->Views($Request, $booking_config_type_id);
   }
