@@ -23,14 +23,21 @@ use Drupal\booking_system\Controller\BookingSystemUseApp;
  *        
  */
 class BookingSystemUseAppLesroidelareno extends BookingSystemUseApp {
+  protected static $default_id = 'wb_horizon_com';
   
   /**
    * Permet de charger la configuration par defaut.
    */
   public function loadConfigCalandar(Request $Request) {
+    $entity_type_id = "booking_config_type";
     $booking_config_type_id = lesroidelareno::getCurrentPrefixDomain();
-    
-    // return HttpResponse::response($configs);
+    $entityConfig = $this->entityTypeManager()->getStorage($entity_type_id)->load($booking_config_type_id);
+    if (!$booking_config_type_id || !$entityConfig) {
+      /**
+       * Pour la configuration par defaut.
+       */
+      $booking_config_type_id = self::$default_id;
+    }
     return $this->Views($Request, $booking_config_type_id);
   }
   
@@ -44,6 +51,38 @@ class BookingSystemUseAppLesroidelareno extends BookingSystemUseApp {
    */
   public function loadConfisCreneaux($booking_config_type_id, $date) {
     return parent::loadConfisCreneaux($booking_config_type_id, $date);
+  }
+  
+  /**
+   * Permet de generer et de configurer RDV par domaine.
+   */
+  public function ConfigureDefault() {
+    $entity_type_id = "booking_config_type";
+    $id = lesroidelareno::getCurrentPrefixDomain();
+    if (!$id) {
+      /**
+       * Pour la configuration par defaut.
+       */
+      $id = self::$default_id;
+    }
+    $entityConfig = $this->entityTypeManager()->getStorage($entity_type_id)->load($id);
+    if (!$entityConfig) {
+      $entityConfig = $this->entityTypeManager()->getStorage($entity_type_id)->create([
+        'id' => $id,
+        'label' => 'Configuration des creneaux',
+        'days' => \Drupal\booking_system\DaysSettingsInterface::DAYS
+      ]);
+      $entityConfig->save();
+    }
+    
+    // dd($entityConfig->toArray());
+    // $entityConfig->save();
+    
+    $form = $this->entityFormBuilder()->getForm($entityConfig, "edit", [
+      'redirect_route' => 'lesroidelareno.booking_system.config_resume',
+      'booking_config_type_id' => $entityConfig->id()
+    ]);
+    return $form;
   }
   
   /**
