@@ -58,8 +58,9 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
       case 'commerce_order_item': // identification des elemnts du panier.
       case 'commerce_payment': // identification d'un paiement
       case 'commerce_payment_method': // identification d'une methode de
-                                       // paiment
-                                       // enregistrer
+                                      // paiment
+                                      // enregistrer
+      case 'files_style':
         $setDomaine = true;
         break;
     }
@@ -169,13 +170,13 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
   }
   
   elseif ($entity_type->id() == 'dis_period_entity') {
-    __prise_rendez_vous_fields_domain($fields);
+    __add_fields_domain($fields);
   }
   elseif ($entity_type->id() == 'equipes_entity') {
-    __prise_rendez_vous_fields_domain($fields);
+    __add_fields_domain($fields);
   }
   elseif ($entity_type->id() == 'submit_rdv_entity') {
-    __prise_rendez_vous_fields_domain($fields);
+    __add_fields_domain($fields);
   }
   elseif ($entity_type->id() == 'menu_link_content') {
     // on ajoute un champs pour identifier l'auteur du menu.
@@ -183,6 +184,9 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
     $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setDisplayOptions('form', [ //
     ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
     ])->setDescription("Idealement on doit pouvoir identifier l'auteur d'un element de menu à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
+  }
+  elseif ($entity_type->id() == 'files_style') {
+    __add_fields_domain($fields);
   }
   
   return $fields;
@@ -193,7 +197,7 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
  *
  * @param array $fields
  */
-function __prise_rendez_vous_fields_domain(array &$fields) {
+function __add_fields_domain(array &$fields) {
   $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
   $field_source = \Drupal\domain_source\DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD;
   //
