@@ -45,8 +45,7 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
       $isAdministrator = true;
     
     /**
-     * Objectif est d'ajouté le domaine encours à certains entites( elements de
-     * commerce ).
+     * Force l'ajout du domaine encours au entites ci-apres.
      * "commerce_order_item" porte les elements du panier.
      * (On ajoute cela egalement à d'autre entites).
      */
@@ -58,15 +57,23 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
       case 'commerce_order_item': // identification des elemnts du panier.
       case 'commerce_payment': // identification d'un paiement
       case 'commerce_payment_method': // identification d'une methode de
-                                      // paiment
-                                      // enregistrer
-      case 'files_style':
+                                       // paiment
+                                       // enregistrer
+        
         $setDomaine = true;
         break;
     }
     if ($setDomaine) {
       $entity->set(DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD, lesroidelareno::getCurrentDomainId());
       $entity->set(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD, lesroidelareno::getCurrentDomainId());
+    }
+    /**
+     * Ajoute le domaine encours si c'est pas definit.
+     */
+    elseif ($entity_id == 'files_style') {
+      if (empty($entity->get(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD)->target_id)) {
+        $entity->set(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD, lesroidelareno::getCurrentDomainId());
+      }
     }
     elseif ($entity_id == 'paragraph' && $entity_id == 'menu_link_content') {
       /**
@@ -153,6 +160,7 @@ function lesroidelareno_entity_type_alter(array &$entity_types) {
 
 /**
  * implement hook_entity_base_field_info
+ * ND: il faut executer "drush entup" pour que les champs soit MAJ dans la bd.
  *
  * @param EntityTypeInterface $entity_type
  *
@@ -178,15 +186,15 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
   elseif ($entity_type->id() == 'submit_rdv_entity') {
     __add_fields_domain($fields);
   }
+  elseif ($entity_type->id() == 'files_style') {
+    __add_fields_domain($fields);
+  }
   elseif ($entity_type->id() == 'menu_link_content') {
     // on ajoute un champs pour identifier l'auteur du menu.
     // ( ca champs doit etre desactiver à l'avichage par defaut ).
     $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setDisplayOptions('form', [ //
     ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
     ])->setDescription("Idealement on doit pouvoir identifier l'auteur d'un element de menu à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
-  }
-  elseif ($entity_type->id() == 'files_style') {
-    __add_fields_domain($fields);
   }
   
   return $fields;

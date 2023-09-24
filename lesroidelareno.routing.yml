@@ -42,6 +42,17 @@ lesroidelareno.booking_system.save_reservation:
     _controller: '\Drupal\lesroidelareno\Controller\BookingSystemUseAppLesroidelareno::SaveReservation'
   requirements:
     _permission: "access content"
+
+#############################################
+##en relation avec generate_style_theme
+lesroidelareno.generate_style_theme.set_default_style:
+  path: '/lesroidelareno-generate_style_theme/set_default_style/{id}/{theme_name}/{domaine_id}/{entity_type_id}'
+  defaults:
+    _controller: '\Drupal\lesroidelareno\Controller\GenerateStyleThemeController::setDefaultStyle'
+    _title: 'Set default style'
+    entity_type_id: 'site_type_datas'
+  requirements:
+    _access: 'TRUE'
     
 ###################################################
 
