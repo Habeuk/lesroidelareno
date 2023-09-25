@@ -46,7 +46,7 @@ lesroidelareno.booking_system.save_reservation:
 #############################################
 ##en relation avec generate_style_theme
 lesroidelareno.generate_style_theme.set_default_style:
-  path: '/lesroidelareno-generate_style_theme/set_default_style/{id}/{theme_name}/{domaine_id}/{entity_type_id}'
+  path: '/lesroidelareno-generate_style_theme/set_default_style/{id}/{theme_name}/{entity_type_id}'
   defaults:
     _controller: '\Drupal\lesroidelareno\Controller\GenerateStyleThemeController::setDefaultStyle'
     _title: 'Set default style'

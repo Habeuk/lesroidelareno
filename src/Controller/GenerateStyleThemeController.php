@@ -4,7 +4,9 @@ namespace Drupal\lesroidelareno\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Stephane888\Debug\ExceptionExtractMessage;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\generate_style_theme\Services\ManageFileCustomStyle;
+use Stephane888\DrupalUtility\HttpResponse;
 
 /**
  * Class DonneeSiteInternetEntityController.
@@ -24,6 +26,14 @@ class GenerateStyleThemeController extends ControllerBase {
   }
   
   /**
+   *
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('generate_style_theme.manage_file_custom_style'));
+  }
+  
+  /**
    * Permet de recuperer les styles definit dans une entity et de les renvoyés
    * vers le themes.
    * Cette fonctionnalitées est limités pour le moment à wb-horizon.
@@ -33,11 +43,8 @@ class GenerateStyleThemeController extends ControllerBase {
    * @param string $entity_type_id
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    */
-  public function setDefaultStyle($id, $theme_name, $domaine_id, $entity_type_id = 'site_type_datas') {
+  public function setDefaultStyle($id, $theme_name, $entity_type_id = 'site_type_datas') {
     /**
-     * C'est le contenu model.
-     * Dans ce contenu model, seul quelques sont necessaire.
-     * [ layout_paragraphs ]
      *
      * @var \Drupal\creation_site_virtuel\Entity\SiteTypeDatas $entityModel
      */
@@ -48,22 +55,22 @@ class GenerateStyleThemeController extends ControllerBase {
         $style_scss = $entityModel->get('style_scss')->value;
         $style_js = $entityModel->get('style_js')->value;
         $customValue = [
-          \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD => $domaine_id
+          \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD => $theme_name,
+          \Drupal\domain_source\DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD => $theme_name
         ];
-        $this->ManageFileCustomStyle->saveStyle('entity.site_type_datas', 'lesroidelareno', $style_scss, $style_js, $customValue);
-        // \Stephane888\Debug\debugLog::kintDebugDrupal($entityModel->get('style_scss')->value,
-        // 'setDefaultStyle', true);
-        return $this->reponse('Add custom style from model to site model : OK.');
+        if (!empty($style_scss) || !empty($style_js))
+          $this->ManageFileCustomStyle->saveStyle('entity.site_type_datas', 'lesroidelareno', $style_scss, $style_js, $customValue);
+        return HttpResponse::response('Add custom style from model to site model : OK.');
       }
       catch (\Exception $e) {
         $errors = ExceptionExtractMessage::errorAll($e);
         $this->getLogger('lesroidelareno')->critical($e->getMessage() . '<br>' . implode("<br>", $errors));
-        return $this->reponse($errors, 400, $e->getMessage());
+        return HttpResponse::response($errors, 400, $e->getMessage());
       }
     }
     else {
       $this->getLogger('lesroidelareno')->critical(" Le contenu model n'existe plus : " . $id);
-      return $this->reponse([], 400, "Le contenu model n'existe plus : " . $id);
+      return HttpResponse::response([], 400, "Le contenu model n'existe plus : " . $id);
     }
   }
   

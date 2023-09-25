@@ -73,6 +73,7 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
     elseif ($entity_id == 'files_style') {
       if (empty($entity->get(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD)->target_id)) {
         $entity->set(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD, lesroidelareno::getCurrentDomainId());
+        $entity->set(DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD, lesroidelareno::getCurrentDomainId());
       }
     }
     elseif ($entity_id == 'paragraph' && $entity_id == 'menu_link_content') {
@@ -202,6 +203,7 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
 
 /**
  * C'est specifique au type de contenu.
+ *
  *
  * @param array $fields
  */
@@ -700,11 +702,16 @@ function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface
 }
 
 /**
+ * Ce filtre est executer à chaque requete.
  *
  * @param \Drupal\mysql\Driver\Database\mysql\Select $query
  */
 function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterface $query) {
-  
+  /**
+   *
+   * @var \Drupal\mysql\Driver\Database\mysql\Select $select
+   */
+  $select = $query;
   /**
    * On filtre les produits dans le panier en fonction du domaine encours.
    */
@@ -716,16 +723,97 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     // dump('1=> ' . $query->__toString());
     // dump(lesroidelareno::getCurrentDomainId());
   }
+  // /**
+  // * Ne fonctionne pas, peut etre un bug ???
+  // *
+  // * @see
+  // \Drupal\Core\Entity\Plugin\EntityReferenceSelection\DefaultSelection::buildEntityQuery()
+  // */
+  // elseif ($query->hasTag('entity_reference_selection_handler')) {
+  // // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
+  // // 'lesroidelareno_query_alter', true);
+  // // dump($query);
+  // }
+  /**
+   * Ce groupe de filtre s'execute tant que possible, pas de cache sur ces
+   * derniers.
+   * Le but principal est de limité les contenus au domaine.
+   */
+  elseif ($query->hasTag('entity_query_paragraph')) {
+  }
+  elseif ($query->hasTag('entity_query_config_theme_entity')) {
+  }
+  elseif ($query->hasTag('entity_query_blocks_contents')) {
+  }
+  elseif ($query->hasTag('entity_query_commerce_product_variation')) {
+  }
+  elseif ($query->hasTag('entity_query_site_type_datas')) {
+  }
+  elseif ($query->hasTag('entity_query_node')) {
+  }
+  elseif ($query->hasTag('entity_query_commerce_order')) {
+  }
+  elseif ($query->hasTag('entity_query_block_content')) {
+  }
+  elseif ($query->hasTag('entity_query_commerce_product')) {
+  }
+  elseif ($query->hasTag('entity_query_commerce_order_item')) {
+  }
+  elseif ($query->hasTag('entity_query_comment')) {
+  }
+  elseif ($query->hasTag('entity_query_media')) {
+  }
+  elseif ($query->hasTag('entity_query_user')) {
+  }
+  elseif ($query->hasTag('entity_query_commerce_shipment')) {
+  }
+  elseif ($query->hasTag('entity_query_profile')) {
+  }
+  elseif ($query->hasTag('entity_query_taxonomy_term')) {
+  }
+  elseif ($query->hasTag('site_type_datas_load_multiple')) {
+  }
+  elseif ($query->hasTag('entity_query_commerce_product_attribute_value')) {
+  }
+  elseif ($query->hasTag('entity_query_site_internet_entity')) {
+  }
+  elseif ($query->hasTag('entity_query_model_cv')) {
+  }
+  elseif ($query->hasTag('entity_query_commerce_store')) {
+  }
+  elseif ($query->hasTag('files_style_load_multiple')) {
+    // \Stephane888\Debug\debugLog::kintDebugDrupal($select->__toString(),
+    // 'lesroidelareno_query_alter', true);
+    $select->condition('field_domain_access', lesroidelareno::getCurrentDomainId());
+  }
+  elseif ($query->hasTag('entity_query_cv_entity')) {
+  }
+  elseif ($query->hasTag('entity_query_shortcut')) {
+  }
+  elseif ($query->hasTag('entity_query_booking_reservation')) {
+  }
+  elseif ($query->hasTag('user_load_multiple')) {
+  }
+  elseif ($query->hasTag('entity_query_node')) {
+  }
+  // else {
+  // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
+  // 'lesroidelareno_query_alter', true);
+  // }
 }
 
 /**
- * implement hook_query_entityreference_alter
+ * implement hook_query_TAG_alter with tag "entity_reference"
  * Filtrer les requetes de recherche via le domaine tant que cela est possible.
+ * Ce filtre est execute generalement dans les configurations.
  *
+ * @see \Drupal\Core\Entity\Plugin\EntityReferenceSelection\DefaultSelection::buildEntityQuery()
+ *      for more information.
  * @param \Drupal\Core\Database\Query\AlterableInterface $query
  */
-function lesroidelareno_query_entity_reference_alter(\Drupal\mysql\Driver\Database\mysql\Select $query) {
-  
+function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query\AlterableInterface $query) {
+  // \Drupal::messenger()->addMessage('test ::
+  // lesroidelareno_query_entity_reference_alter');
   /**
    *
    * @var \Drupal\node\Plugin\EntityReferenceSelection\NodeSelection $entity_reference
@@ -799,6 +887,10 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\mysql\Driver\Databa
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         // dump('3=> ' . $query->__toString());
+        break;
+      case 'files_style':
+        // $query->condition('base_table.field_domain_access',
+        // lesroidelareno::getCurrentDomainId());
         break;
       case 'site_type_datas':
       case 'taxonomy_term':
