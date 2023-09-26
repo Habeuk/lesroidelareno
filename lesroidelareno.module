@@ -76,7 +76,7 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
         $entity->set(DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD, lesroidelareno::getCurrentDomainId());
       }
     }
-    elseif ($entity_id == 'paragraph' && $entity_id == 'menu_link_content') {
+    elseif ($entity_id == 'paragraph' || $entity_id == 'menu_link_content') {
       /**
        * Lors de la creation d'un paragraph (ou ...) on remplit automatiquement
        * le champs'wbh_user_id'.
