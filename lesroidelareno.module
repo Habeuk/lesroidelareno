@@ -781,10 +781,17 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
   }
   elseif ($query->hasTag('entity_query_commerce_store')) {
   }
+  /**
+   * Une requete via ( load_multiple )
+   */
   elseif ($query->hasTag('files_style_load_multiple')) {
-    // \Stephane888\Debug\debugLog::kintDebugDrupal($select->__toString(),
-    // 'lesroidelareno_query_alter', true);
     $select->condition('field_domain_access', lesroidelareno::getCurrentDomainId());
+  }
+  /**
+   * Une requete via ( GetQuery, loadByProperties )
+   */
+  elseif ($query->hasTag('entity_query_files_style')) {
+    $select->condition('base_table.field_domain_access', lesroidelareno::getCurrentDomainId());
   }
   elseif ($query->hasTag('entity_query_cv_entity')) {
   }
