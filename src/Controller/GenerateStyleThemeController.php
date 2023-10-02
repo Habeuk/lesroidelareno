@@ -58,8 +58,17 @@ class GenerateStyleThemeController extends ControllerBase {
           \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD => $theme_name,
           \Drupal\domain_source\DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD => $theme_name
         ];
-        if (!empty($style_scss) || !empty($style_js))
-          $this->ManageFileCustomStyle->saveStyle('entity.site_type_datas', 'lesroidelareno', $style_scss, $style_js, $customValue);
+        if (!empty($style_scss) || !empty($style_js)) {
+          /**
+           * On utilise les clées de "Form::GenerateStyleThemeStyles" afin de
+           * permettre l'edition du styles au niveau du sous domaine.
+           *
+           * @var string $key
+           */
+          $key = 'generate_style_theme.styles';
+          $this->ManageFileCustomStyle->saveStyle($key, 'generate_style_theme', $style_scss, $style_js, $customValue);
+        }
+        
         return HttpResponse::response('Add custom style from model to site model : OK.');
       }
       catch (\Exception $e) {
