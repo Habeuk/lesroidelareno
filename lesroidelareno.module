@@ -804,7 +804,8 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
   elseif ($query->hasTag('entity_query_node')) {
   }
   // else {
-  // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
+  // // dump($query);
+  // // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
   // 'lesroidelareno_query_alter', true);
   // }
 }
