@@ -418,7 +418,22 @@ function lesroidelareno_editor_js_settings_alter(array &$settings) {
  *        $vars
  */
 function lesroidelareno_preprocess_html(&$vars) {
+  // $entity =
+  // \Drupal::entityTypeManager()->getStorage('site_type_datas')->load(185);
+  // dump($entity->getPlugins());
+  /**
+   *
+   * @var \Drupal\domain_config\DomainConfigOverrider $DomainConfigOverrider
+   */
+  // $DomainConfigOverrider = \Drupal::service('domain_config.overrider');
+  // $configs = $DomainConfigOverrider->loadOverrides([
+  // 'manage_module_config.settings'
+  // ]);
+  // dump($configs);
+  //
+  //
   $routeName = \Drupal::routeMatch()->getRouteName();
+  // dump($routeName);
   //
   if (!str_contains($routeName, 'system.admin')) {
     $vars['page']['#attached']['library'][] = 'lesroidelareno/lesroidelareno_tawk.config';
