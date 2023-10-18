@@ -183,12 +183,12 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
         //
         $DomainOvh = \Drupal\ovh_api_rest\Entity\DomainOvhEntity::create();
         $DomainOvh->set('name', ' Generate domain : ' . $this->getName());
-        $DomainOvh->set('zone_name', $conf['zone_name']);
-        $DomainOvh->set('field_type', $conf['field_type']);
-        // $DomainOvh->set('sub_domain', $sub_domain);
+        // $DomainOvh->set('zone_name', $conf['zone_name']);
+        // $DomainOvh->set('field_type', $conf['field_type']);
+        
         $DomainOvh->setSubDomain($sub_domain);
-        $DomainOvh->set('target', $conf['target']);
-        $DomainOvh->set('path', $conf['path']);
+        // $DomainOvh->set('target', $conf['target']);
+        // $DomainOvh->set('path', $conf['path']);
         $domaineHost = $DomainOvh->getsubDomain() . '.' . $DomainOvh->getZoneName();
         // On cree le domain.
         $domain = \Drupal\vuejs_entity\VuejsEntity::createDomainFromData($domaineHost);
