@@ -182,7 +182,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
         
         //
         $DomainOvh = \Drupal\ovh_api_rest\Entity\DomainOvhEntity::create();
-        $DomainOvh->set('name', ' Generate domain : ' . $this->getName());
+        $DomainOvh->set('name', $this->getName());
         // $DomainOvh->set('zone_name', $conf['zone_name']);
         // $DomainOvh->set('field_type', $conf['field_type']);
         
