@@ -82,6 +82,14 @@ lesroidelareno.manage_rdv_configs:
   requirements:
     _permission: 'access content'
     _role: 'gerant_de_site_web+administrator'
+
+lesroidelareno.add_role:
+  path: '/admin/lesroidelareno/add-roles'
+  defaults:
+    _title: 'Prise rendez vous settings'
+    _controller: '\Drupal\lesroidelareno\Controller\LesroidelarenoConfigController::giveRoles'
+  requirements:
+    _permission: 'access content'
     
 # permet gerer les moyens de payement.
 lesroidelareno.payement_gateways:

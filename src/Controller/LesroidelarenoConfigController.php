@@ -4,6 +4,7 @@ namespace Drupal\lesroidelareno\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Stephane888\Debug\Repositories\ConfigDrupal;
+use Stephane888\DrupalUtility\HttpResponse;
 use Drupal\prise_rendez_vous\Entity\RdvConfigEntity;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
@@ -30,8 +31,29 @@ class LesroidelarenoConfigController extends ControllerBase {
     return new static($container->get('domain.negotiator'));
   }
   
+  /**
+   *
+   * @param DomainNegotiatorInterface $domainNegotiator
+   */
   public function __construct(DomainNegotiatorInterface $domainNegotiator) {
     $this->domainNegotiator = $domainNegotiator;
+  }
+  
+  /**
+   * Accorde les roles necessaire permettant de poursuivre la creation du site.
+   */
+  public function giveRoles() {
+    $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+    if ($user) {
+      if (!$user->hasRole('gerant_de_site_web')) {
+        $user->addRole('gerant_de_site_web');
+        $user->save();
+      }
+      return HttpResponse::response([
+        $user->id()
+      ], 200, 'User must connecte');
+    }
+    return HttpResponse::response('user must connecte', 400, 'user must connecte');
   }
   
   /**
@@ -83,6 +105,11 @@ class LesroidelarenoConfigController extends ControllerBase {
     return [];
   }
   
+  /**
+   *
+   * @param string $menu
+   * @return array|boolean|array
+   */
   public function addMenuItem($menu) {
     if (!lesroidelareno::userIsAdministratorSite()) {
       return $this->forbittenMessage();
