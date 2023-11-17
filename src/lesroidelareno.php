@@ -6,6 +6,19 @@ use Drupal\Component\Utility\Crypt;
 use PhpParser\Error;
 
 class lesroidelareno {
+  /**
+   * L'adresse Ip du serveur.
+   *
+   * @var string
+   */
+  public const ip_serveur = '152.228.134.19';
+  
+  /**
+   * webroot ( les fichiers du index est dans /home/wb-horizon/public/web/ ).
+   *
+   * @var string
+   */
+  public const webroot = '/home/wb-horizon';
   
   /**
    * Propriettaire et gerant de site web.

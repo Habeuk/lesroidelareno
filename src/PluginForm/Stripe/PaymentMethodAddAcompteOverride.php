@@ -2,11 +2,11 @@
 
 namespace Drupal\lesroidelareno\PluginForm\Stripe;
 
-use Drupal\stripebyhabeuk\PluginForm\StripebyhabeukStaticOnSiteCheckoutForm;
+use Drupal\stripebyhabeuk\PluginForm\StripebyhabeukCheckoutForm;
 
 /**
  * Provides payment form for Stripe.
  */
-class PaymentMethodAddAcompteOverride extends StripebyhabeukStaticOnSiteCheckoutForm {
+class PaymentMethodAddAcompteOverride extends StripebyhabeukCheckoutForm {
   
 }
