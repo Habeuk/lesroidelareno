@@ -14,6 +14,13 @@ class lesroidelareno {
   public const ip_serveur = '152.228.134.19';
   
   /**
+   * L'adresse Ip du serveur.
+   *
+   * @var string
+   */
+  public const ipv6_serveur = '2001:41d0:404:200::7c3f';
+  
+  /**
    * webroot ( les fichiers du index est dans /home/wb-horizon/public/web/ ).
    *
    * @var string
