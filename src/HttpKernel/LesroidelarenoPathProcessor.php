@@ -138,56 +138,26 @@ class LesroidelarenoPathProcessor implements OutboundPathProcessorInterface {
         }
       }
       
-      // Pour renvoyer l'entite commence_product sur une autre URL.
-      /**
-       * Desactivé car on a changer de logique.
-       */
-      // if ($entity->hasField('field_prestataires')) {
-      // $field = $entity->get('field_prestataires')->first();
-      // if ($field) {
-      // // $StoregeNode = \Drupal::entityTypeManager()->getStorage('node');
-      // $id = $field->getValue();
-      // if (!empty($id['target_id'])) {
-      // // $node = $StoregeNode->load($id['target_id']);
-      
-      // //
-      // if ($options['route_name'] == 'entity.commerce_product.canonical') {
-      // // dump($node->toUrl()->toString());
-      
-      // $optionsUrl = [
-      // 'absolute' => false
-      // ];
-      // $url = \Drupal\Core\Url::fromRoute('entity.node.canonical', [
-      // 'node' => $id['target_id']
-      // ], $optionsUrl);
-      // $url = $url->toString();
-      // // dump($url);
-      // $options['absolute'] = TRUE;
-      // $options['prefix'] = '';
-      // // return $node->toUrl()->toString();
-      // return $url;
-      // }
-      // }
-      // }
-      // }
-      //
       if (isset($options['domain_target_id'])) {
         $target_id = $options['domain_target_id'];
-      }
-      else {
-        $target_id = $this->Lesroidelareno_domain_source_get($entity);
-      }
-      if (!empty($target_id)) {
         $source = $this->domainStorage()->load($target_id);
       }
+      else {
+        $source = $this->Lesroidelareno_domain_source_get($entity);
+      }
+      
       // on change le domaine de base.
       if (!empty($source)) {
+        // dump($source);
+        /**
+         *
+         * @var \Drupal\domain\Entity\Domain $source
+         */
         // Note that url rewrites add a leading /, which getPath() also adds.
         $options['base_url'] = trim($source->getPath(), '/');
         $options['absolute'] = TRUE;
       }
     }
-    
     return $path;
   }
   
@@ -200,12 +170,9 @@ class LesroidelarenoPathProcessor implements OutboundPathProcessorInterface {
     $value = $entity->get(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD)->getValue();
     if (!empty($value[0])) {
       $target_id = $value[0]['target_id'];
-      
-      if ($domain = \Drupal::entityTypeManager()->getStorage('domain')->load($target_id)) {
-        $source = $domain->id();
-      }
+      if ($domain = $this->domainStorage()->load($target_id))
+        $source = $domain;
     }
-    
     return $source;
   }
   

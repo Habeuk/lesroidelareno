@@ -127,6 +127,8 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
   }
   
   /**
+   * Permet de creer l'entite : domain_ovh_entity qui sert de relation entre
+   * drupal et ovh.
    * Enregistre d'autres données.
    */
   protected function saveAnotherDatas() {

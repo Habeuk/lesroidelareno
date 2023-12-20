@@ -1,7 +1,7 @@
 {
   "name": "habeuk/lesroidelareno",
   "description": "module pour lesroisdelareno",
-  "type": "drupal-module-custom",
+  "type": "drupal-custom-module",
   "license": "MIT",
   "authors": [
     {

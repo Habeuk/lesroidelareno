@@ -50,7 +50,7 @@ class LesroidelarenoConfigController extends ControllerBase {
         $user->save();
       }
       return HttpResponse::response([
-        $user->id()
+        'uid' => $user->id()
       ], 200, 'User must connecte');
     }
     return HttpResponse::response('user must connecte', 400, 'user must connecte');
