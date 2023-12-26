@@ -948,43 +948,6 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
 }
 
 /**
- * --forcing
- *
- * @deprecated
- * @param array $vars
- */
-function lesroidelareno_preprocess_formatage_models_simple_block(&$vars) {
-  if (!empty($vars['settings']['layoutrestrictions']['use_roles']) && !empty($vars['settings']['layoutrestrictions']['roles'])) {
-    $validRoles = [
-      'administrator'
-    ];
-    /**
-     *
-     * @var User $user
-     */
-    $user = User::load(\Drupal::currentUser()->id());
-    $currentRoles = $user->getRoles();
-    foreach ($vars['settings']['layoutrestrictions']['roles'] as $value) {
-      if ($value)
-        $validRoles[] = $value;
-    }
-    //
-    if (!empty($validRoles)) {
-      $access = false;
-      foreach ($validRoles as $role) {
-        if (in_array($role, $currentRoles)) {
-          $access = true;
-          break;
-        }
-      }
-      if (!$access) {
-        $vars['content'] = [];
-      }
-    }
-  }
-}
-
-/**
  * Implements hook_form_alter().
  */
 function lesroidelareno_form_alter(&$form, FormStateInterface $form_state, $form_id) {
