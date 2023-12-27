@@ -915,11 +915,18 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         // $query->condition('base_table.field_domain_access',
         // lesroidelareno::getCurrentDomainId());
         break;
+      // Liste d'entites à ignorer.
       case 'site_type_datas':
       case 'taxonomy_term':
       case 'user':
       case 'file':
-        // ignore
+      case 'commerce_product_variation':
+      // car ils dependent du produit et le
+      // produit est deja filtrer.
+      
+      case 'commerce_store':
+        // ignore car on a pas prevus une separation de boutique. On verra la
+        // necessite ou pas.
         break;
       default:
         \Drupal::messenger()->addWarning(" Cet filtre doit etre correctement configurer : " . $settings['target_type']);
