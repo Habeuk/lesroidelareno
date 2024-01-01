@@ -683,8 +683,9 @@ function _lesroidelareno_get_product_theme(Drupal\commerce_product\Entity\Produc
 function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL) {
   $disabledFields = [
     'field_domain_access',
-    'user_id',
+    'field_domain_admin',
     'field_domain_source',
+    'user_id',
     'is_home_page',
     'is_default_theme',
     'path',
@@ -693,7 +694,7 @@ function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface
     'langcode',
     'wbh_user_id',
     'user_id',
-    'field_domain_admin'
+    'entities_duplicate'
   ];
   
   if (in_array($field_definition->getName(), $disabledFields)) {
@@ -887,9 +888,11 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'commerce_promotion':
-        $query->addJoin('INNER', 'commerce_promotion__field_domain_access', 'fda', 'fda.entity_id=base_table.product_id');
-        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
-        $query->addField('fda', 'field_domain_access_target_id');
+        // $query->addJoin('INNER', 'commerce_promotion__field_domain_access',
+        // 'fda', 'fda.entity_id=base_table.product_id');
+        // $query->condition('fda.field_domain_access_target_id',
+        // lesroidelareno::getCurrentDomainId());
+        // $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'blocks_contents':
         $query->addJoin('INNER', 'blocks_contents__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
