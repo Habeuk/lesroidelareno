@@ -681,16 +681,6 @@ function _lesroidelareno_get_product_theme(Drupal\commerce_product\Entity\Produc
  * Implements hook_entity_field_access().
  */
 function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL) {
-  // $context = ($operation == 'view') ? 'display' : 'edit';
-  // if (!$field_definition->isDisplayConfigurable($context) || empty($items)) {
-  // return AccessResult::neutral();
-  // }
-  // $access_field =
-  // \Drupal::service('field_permissions.permissions_service')->getFieldAccess($operation,
-  // $items, $account, $field_definition);
-  // if (!$access_field) {
-  // return AccessResult::forbidden();
-  // }
   $disabledFields = [
     'field_domain_access',
     'user_id',
@@ -719,110 +709,148 @@ function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface
 /**
  * Ce filtre est executer à chaque requete.
  *
+ *
  * @param \Drupal\mysql\Driver\Database\mysql\Select $query
  */
 function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterface $query) {
-  /**
-   *
-   * @var \Drupal\mysql\Driver\Database\mysql\Select $select
-   */
-  $select = $query;
-  /**
-   * On filtre les produits dans le panier en fonction du domaine encours.
-   */
-  if ($query->hasTag('commerce_cart_order_ids')) {
-    $query->addJoin('INNER', 'commerce_order_item', 'coi', 'coi.order_id=commerce_order.order_id');
-    $query->addJoin('INNER', 'commerce_product_variation_field_data', 'prd_va', 'prd_va.variation_id=coi.purchased_entity');
-    $query->addJoin('INNER', 'commerce_product__field_domain_access', 'prd_da', 'prd_da.entity_id=prd_va.product_id');
-    $query->condition('prd_da.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
-    // dump('1=> ' . $query->__toString());
-    // dump(lesroidelareno::getCurrentDomainId());
+  if ($query instanceof \Drupal\mysql\Driver\Database\mysql\Select) {
+    /**
+     *
+     * @var \Drupal\mysql\Driver\Database\mysql\Select $query
+     */
+    /**
+     * Les filtres utilisant la logique de $tables sont strites.
+     *
+     * @var array $tables
+     */
+    $tables = $query->getTables();
+    /**
+     * On filtre toutes requetes utilisant la table
+     * 'commerce_promotion_field_data'.
+     * Filtre sur l'entité : commerce_promotion
+     */
+    if (!empty($tables['commerce_promotion_field_data'])) {
+      /**
+       * On verifie s'il ya deja un filtre sur le domaine.
+       */
+      if (!isset($tables['commerce_promotion__field_domain_access'])) {
+        $query->addJoin('INNER', 'commerce_promotion__field_domain_access', 'cp_fda', 'cp_fda.entity_id=commerce_promotion_field_data.promotion_id');
+        $query->condition('cp_fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+      }
+    }
+    
+    /**
+     * On filtre les produits dans le panier en fonction du domaine encours.
+     */
+    if ($query->hasTag('commerce_cart_order_ids')) {
+      $query->addJoin('INNER', 'commerce_order_item', 'coi', 'coi.order_id=commerce_order.order_id');
+      $query->addJoin('INNER', 'commerce_product_variation_field_data', 'prd_va', 'prd_va.variation_id=coi.purchased_entity');
+      $query->addJoin('INNER', 'commerce_product__field_domain_access', 'prd_da', 'prd_da.entity_id=prd_va.product_id');
+      $query->condition('prd_da.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+      // dump('1=> ' . $query->__toString());
+      // dump(lesroidelareno::getCurrentDomainId());
+    }
+    // /**
+    // * Ne fonctionne pas, peut etre un bug ???
+    // *
+    // * @see
+    // \Drupal\Core\Entity\Plugin\EntityReferenceSelection\DefaultSelection::buildEntityQuery()
+    // */
+    // elseif ($query->hasTag('entity_reference_selection_handler')) {
+    // // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
+    // // 'lesroidelareno_query_alter', true);
+    // // dump($query);
+    // }
+    /**
+     * Ce groupe de filtre s'execute tant que possible, pas de cache sur ces
+     * derniers.
+     * Le but principal est de limité les contenus au domaine.
+     */
+    elseif ($query->hasTag('entity_query_paragraph')) {
+    }
+    elseif ($query->hasTag('entity_query_config_theme_entity')) {
+    }
+    elseif ($query->hasTag('entity_query_blocks_contents')) {
+    }
+    elseif ($query->hasTag('entity_query_commerce_product_variation')) {
+    }
+    elseif ($query->hasTag('entity_query_site_type_datas')) {
+    }
+    elseif ($query->hasTag('entity_query_node')) {
+    }
+    elseif ($query->hasTag('entity_query_commerce_order')) {
+    }
+    elseif ($query->hasTag('entity_query_block_content')) {
+    }
+    elseif ($query->hasTag('entity_query_commerce_product')) {
+    }
+    elseif ($query->hasTag('entity_query_commerce_order_item')) {
+    }
+    elseif ($query->hasTag('entity_query_comment')) {
+    }
+    elseif ($query->hasTag('entity_query_media')) {
+    }
+    elseif ($query->hasTag('entity_query_user')) {
+    }
+    elseif ($query->hasTag('entity_query_commerce_shipment')) {
+    }
+    elseif ($query->hasTag('entity_query_profile')) {
+    }
+    elseif ($query->hasTag('entity_query_taxonomy_term')) {
+    }
+    elseif ($query->hasTag('site_type_datas_load_multiple')) {
+    }
+    elseif ($query->hasTag('entity_query_commerce_product_attribute_value')) {
+    }
+    elseif ($query->hasTag('entity_query_site_internet_entity')) {
+    }
+    elseif ($query->hasTag('entity_query_model_cv')) {
+    }
+    elseif ($query->hasTag('entity_query_commerce_store')) {
+    }
+    /**
+     * Filtre sur l'entité : files_style
+     */
+    // via load_multiple
+    elseif ($query->hasTag('files_style_load_multiple')) {
+      $query->condition('field_domain_access', lesroidelareno::getCurrentDomainId());
+    } // via entity_query
+    elseif ($query->hasTag('entity_query_files_style')) {
+      $query->condition('base_table.field_domain_access', lesroidelareno::getCurrentDomainId());
+    }
+    // /**
+    // * Filtre sur l'entité : commerce_promotion
+    // */
+    // // via load_multiple
+    // elseif ($query->hasTag('commerce_promotion_load_multiple')) {
+    // $query->condition('field_domain_access',
+    // lesroidelareno::getCurrentDomainId());
+    // } // via entity_query
+    // elseif ($query->hasTag('entity_query_commerce_promotion')) {
+    // // dd($select->__toString());
+    // // $select->condition('base_table.field_domain_access',
+    // // lesroidelareno::getCurrentDomainId());
+    // $query->addJoin('INNER', 'commerce_promotion__field_domain_access',
+    // 'cp_fda', 'cp_fda.entity_id=commerce_promotion_field_data.promotion_id');
+    // $query->condition('cp_fda.field_domain_access_target_id',
+    // lesroidelareno::getCurrentDomainId());
+    // }
+    elseif ($query->hasTag('entity_query_cv_entity')) {
+    }
+    elseif ($query->hasTag('entity_query_shortcut')) {
+    }
+    elseif ($query->hasTag('entity_query_booking_reservation')) {
+    }
+    elseif ($query->hasTag('user_load_multiple')) {
+    }
+    elseif ($query->hasTag('entity_query_node')) {
+    }
+    else {
+      // dump($query->getTables());
+      // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
+      // 'lesroidelareno_query_alter', true);
+    }
   }
-  // /**
-  // * Ne fonctionne pas, peut etre un bug ???
-  // *
-  // * @see
-  // \Drupal\Core\Entity\Plugin\EntityReferenceSelection\DefaultSelection::buildEntityQuery()
-  // */
-  // elseif ($query->hasTag('entity_reference_selection_handler')) {
-  // // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
-  // // 'lesroidelareno_query_alter', true);
-  // // dump($query);
-  // }
-  /**
-   * Ce groupe de filtre s'execute tant que possible, pas de cache sur ces
-   * derniers.
-   * Le but principal est de limité les contenus au domaine.
-   */
-  elseif ($query->hasTag('entity_query_paragraph')) {
-  }
-  elseif ($query->hasTag('entity_query_config_theme_entity')) {
-  }
-  elseif ($query->hasTag('entity_query_blocks_contents')) {
-  }
-  elseif ($query->hasTag('entity_query_commerce_product_variation')) {
-  }
-  elseif ($query->hasTag('entity_query_site_type_datas')) {
-  }
-  elseif ($query->hasTag('entity_query_node')) {
-  }
-  elseif ($query->hasTag('entity_query_commerce_order')) {
-  }
-  elseif ($query->hasTag('entity_query_block_content')) {
-  }
-  elseif ($query->hasTag('entity_query_commerce_product')) {
-  }
-  elseif ($query->hasTag('entity_query_commerce_order_item')) {
-  }
-  elseif ($query->hasTag('entity_query_comment')) {
-  }
-  elseif ($query->hasTag('entity_query_media')) {
-  }
-  elseif ($query->hasTag('entity_query_user')) {
-  }
-  elseif ($query->hasTag('entity_query_commerce_shipment')) {
-  }
-  elseif ($query->hasTag('entity_query_profile')) {
-  }
-  elseif ($query->hasTag('entity_query_taxonomy_term')) {
-  }
-  elseif ($query->hasTag('site_type_datas_load_multiple')) {
-  }
-  elseif ($query->hasTag('entity_query_commerce_product_attribute_value')) {
-  }
-  elseif ($query->hasTag('entity_query_site_internet_entity')) {
-  }
-  elseif ($query->hasTag('entity_query_model_cv')) {
-  }
-  elseif ($query->hasTag('entity_query_commerce_store')) {
-  }
-  /**
-   * Une requete via ( load_multiple )
-   */
-  elseif ($query->hasTag('files_style_load_multiple')) {
-    $select->condition('field_domain_access', lesroidelareno::getCurrentDomainId());
-  }
-  /**
-   * Une requete via ( GetQuery, loadByProperties )
-   */
-  elseif ($query->hasTag('entity_query_files_style')) {
-    $select->condition('base_table.field_domain_access', lesroidelareno::getCurrentDomainId());
-  }
-  elseif ($query->hasTag('entity_query_cv_entity')) {
-  }
-  elseif ($query->hasTag('entity_query_shortcut')) {
-  }
-  elseif ($query->hasTag('entity_query_booking_reservation')) {
-  }
-  elseif ($query->hasTag('user_load_multiple')) {
-  }
-  elseif ($query->hasTag('entity_query_node')) {
-  }
-  // else {
-  // // dump($query);
-  // // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
-  // 'lesroidelareno_query_alter', true);
-  // }
 }
 
 /**
@@ -855,6 +883,11 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         break;
       case 'commerce_product':
         $query->addJoin('INNER', 'commerce_product__field_domain_access', 'fda', 'fda.entity_id=base_table.product_id');
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+        $query->addField('fda', 'field_domain_access_target_id');
+        break;
+      case 'commerce_promotion':
+        $query->addJoin('INNER', 'commerce_promotion__field_domain_access', 'fda', 'fda.entity_id=base_table.product_id');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
@@ -914,6 +947,7 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
       case 'files_style':
         // $query->condition('base_table.field_domain_access',
         // lesroidelareno::getCurrentDomainId());
+        
         break;
       // Liste d'entites à ignorer.
       case 'site_type_datas':
