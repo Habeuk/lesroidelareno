@@ -418,9 +418,6 @@ function lesroidelareno_editor_js_settings_alter(array &$settings) {
  *        $vars
  */
 function lesroidelareno_preprocess_html(&$vars) {
-  // $entity =
-  // \Drupal::entityTypeManager()->getStorage('site_type_datas')->load(185);
-  // dump($entity->getPlugins());
   /**
    *
    * @var \Drupal\domain_config\DomainConfigOverrider $DomainConfigOverrider
@@ -893,6 +890,7 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         // $query->condition('fda.field_domain_access_target_id',
         // lesroidelareno::getCurrentDomainId());
         // $query->addField('fda', 'field_domain_access_target_id');
+        // cet entité est deja filtrer au niveau de lesroidelareno_query_alter.
         break;
       case 'blocks_contents':
         $query->addJoin('INNER', 'blocks_contents__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
