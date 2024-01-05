@@ -39,7 +39,7 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
         if ($isAdministrator)
           return AccessResult::allowed();
         // On empeche l'acces au données appartenant à un autre domaine.
-        elseif (!$isAdministrator && $paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+        elseif (!$isAdministrator && !$paragraph->isNew() && $paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         elseif ($paragraph->isPublished()) {
@@ -52,7 +52,7 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
         if ($isAdministrator)
           return AccessResult::allowed();
         // On empeche l'acces au données appartenant à un autre domaine.
-        elseif ($paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+        elseif (!$paragraph->isNew() && $paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         elseif ($isOwnerSite || $IsAdministratorSite) {
