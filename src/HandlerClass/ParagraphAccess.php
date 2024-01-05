@@ -30,22 +30,32 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
   protected function checkAccess(EntityInterface $paragraph, $operation, AccountInterface $account) {
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
+    $IsAdministratorSite = lesroidelareno::userIsAdministratorSite();
+    $field_domain_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
     
     switch ($operation) {
       // Tout le monde peut voir les contenus publiées.
       case 'view':
-        if ($paragraph->isPublished()) {
+        if ($isAdministrator)
+          return AccessResult::allowed();
+        // On empeche l'acces au données appartenant à un autre domaine.
+        elseif (!$isAdministrator && $paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        elseif ($paragraph->isPublished()) {
           return AccessResult::allowed();
         }
-        elseif ($isAdministrator)
-          return AccessResult::allowed();
+        break;
       // On met à jour si l'utilisateur est autheur ou s'il est administrateur.
       case 'update':
       case 'delete':
         if ($isAdministrator)
           return AccessResult::allowed();
-        elseif ($isOwnerSite) {
-          
+        // On empeche l'acces au données appartenant à un autre domaine.
+        elseif ($paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        elseif ($isOwnerSite || $IsAdministratorSite) {
           // si on parvient à identifier le parent.
           if ($paragraph->getParentEntity() != NULL) {
             return parent::checkAccess($paragraph, $operation, $account);
@@ -64,7 +74,10 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
             // dump($role->getPermissions());
             return AccessResult::allowed();
           }
+          elseif ($IsAdministratorSite)
+            return AccessResult::allowed();
         }
+        break;
     }
     // on bloque au cas contraire.
     return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");

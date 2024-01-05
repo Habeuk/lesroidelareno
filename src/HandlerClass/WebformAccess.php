@@ -27,30 +27,33 @@ class WebformAccess extends WebformEntityAccessControlHandler {
   public function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
-    // dump($entity->getEntityTypeId() . ' :: ' . $operation);
-    // if ($operation == 'update' || $operation == 'delete') {
-    // $debug = [
-    // 'entity_uid' => $entity->getOwnerId(),
-    // 'current_user_uid' => lesroidelareno::getCurrentUserId(),
-    // 'entity' => $entity->toArray()
-    // ];
-    // \Stephane888\Debug\debugLog::$max_depth = 5;
-    // \Stephane888\Debug\debugLog::kintDebugDrupal($debug,
-    // $entity->getEntityTypeId() . '---checkAccess---' . $operation . '--',
-    // true);
-    // }
+    $field_domain_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
+    
     switch ($operation) {
       // Tout le monde peut voir les contenus publiées.
       case 'view':
-        return AccessResult::allowed();
+        if ($isAdministrator)
+          return AccessResult::allowed();
+        // On empeche l'acces au données appartenant à un autre domaine.
+        elseif (!$isAdministrator && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
+        else
+          return AccessResult::allowed();
+        break;
       // On met à jour si l'utilisateur est autheur ou s'il est administrateur.
       case 'update':
       case 'delete':
         if ($isAdministrator)
           return AccessResult::allowed();
+        // On empeche l'acces au données appartenant à un autre domaine.
+        elseif (!$isAdministrator && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        }
         elseif ($isOwnerSite && $entity->getOwnerId() == lesroidelareno::getCurrentUserId()) {
           return AccessResult::allowed();
         }
+        break;
     }
     // on bloque au cas contraire.
     return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
