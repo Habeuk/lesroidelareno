@@ -39,7 +39,7 @@ trait AccessDefault {
         if ($isAdministrator)
           return AccessResult::allowed();
         // On empeche l'acces au données appartenant à un autre domaine.
-        elseif (!$isAdministrator && !$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+        elseif (!$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         elseif ($entity->isPublished()) {
@@ -54,7 +54,7 @@ trait AccessDefault {
         // On empeche l'acces au données appartenant à un autre domaine.
         // !$entity->isNew() car on peut generer les données à partir d'un autre
         // domaine ou pour un autre domaine.
-        if (!$isAdministrator && !$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+        if (!$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         elseif ($isOwnerSite && $entity->getOwnerId() == lesroidelareno::getCurrentUserId()) {

@@ -7,6 +7,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\lesroidelareno\lesroidelareno;
+use Drupal\webform\Entity\Webform;
 
 /**
  * Le webform est à revoir par example les conditions de delete et aussi les
@@ -28,6 +29,7 @@ class WebformAccess extends WebformEntityAccessControlHandler {
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
     $field_domain_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
+    $target_id = $entity->getThirdPartySetting('webform_domain_access', $field_domain_access);
     
     switch ($operation) {
       // Tout le monde peut voir les contenus publiées.
@@ -35,7 +37,7 @@ class WebformAccess extends WebformEntityAccessControlHandler {
         if ($isAdministrator)
           return AccessResult::allowed();
         // On empeche l'acces au données appartenant à un autre domaine.
-        elseif (!$isAdministrator && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+        elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         else
@@ -47,7 +49,7 @@ class WebformAccess extends WebformEntityAccessControlHandler {
         if ($isAdministrator)
           return AccessResult::allowed();
         // On empeche l'acces au données appartenant à un autre domaine.
-        elseif (!$isAdministrator && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+        elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
         elseif ($isOwnerSite && $entity->getOwnerId() == lesroidelareno::getCurrentUserId()) {

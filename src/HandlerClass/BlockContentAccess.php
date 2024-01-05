@@ -29,7 +29,7 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
         if ($isAdministrator)
           return AccessResult::allowed();
         // On empeche l'acces au données appartenant à un autre domaine.
-        elseif (!$isAdministrator && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+        elseif (!$isAdministrator && !$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
           return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
         }
         elseif ($entity->isPublished()) {
@@ -40,6 +40,9 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
       case 'delete':
         if ($isAdministrator)
           return AccessResult::allowed();
+        elseif (!$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+          return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
+        }
         elseif ($isOwnerSite) {
           return AccessResult::allowed();
         }
