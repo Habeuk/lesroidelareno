@@ -219,9 +219,11 @@ class lesroidelareno {
         else {
           self::$userIsAdministratorSite = false;
           if (self::isOwnerSite()) {
+            
             $uid = self::getCurrentUserId();
             $user = \Drupal\user\Entity\User::load($uid);
             $domaines = $user->get('field_domain_admin')->getValue();
+            
             foreach ($domaines as $value) {
               if ($value['target_id'] == self::getCurrentDomainId()) {
                 self::$userIsAdministratorSite = true;
@@ -274,7 +276,7 @@ class lesroidelareno {
    * Ce parametre est important car il peut etre utiliser comme #id pour les
    * types d'entites car sa valeur est bien en dessous des 32 max.
    */
-  static public function getCurrentPrefixDomain() {
+  static public function getCurrentPrefixDomain($replace_by_undescore = true) {
     if (self::$currentPrefixDomain === NULL) {
       if (isset(self::$cacheAPCu['currentPrefixDomain'])) {
         self::$currentPrefixDomain = self::$cacheAPCu['currentPrefixDomain'];
@@ -289,16 +291,19 @@ class lesroidelareno {
            * @var \Drupal\ovh_api_rest\Entity\DomainOvhEntity $domain_ovh_entity
            */
           $domain_ovh_entity = reset($domain_ovh_entities);
-          /**
-           * cette chaine peut contenir "-" qui n'est pas valide pour
-           * certains entitées.
-           * ( du coup on remplace car la majorité des entitées exigent "_" ).
-           */
-          self::$currentPrefixDomain = str_replace("-", "_", $domain_ovh_entity->getsubDomain());
+          
+          self::$currentPrefixDomain = $domain_ovh_entity->getsubDomain();
           self::setDataCache('currentPrefixDomain', self::$currentPrefixDomain);
         }
       }
     }
+    /**
+     * cette chaine peut contenir "-" qui n'est pas valide pour
+     * certains entitées.
+     * ( du coup on remplace car la majorité des entitées exigent "_" ).
+     */
+    if ($replace_by_undescore)
+      return str_replace("-", "_", self::$currentPrefixDomain);
     return self::$currentPrefixDomain;
   }
   
