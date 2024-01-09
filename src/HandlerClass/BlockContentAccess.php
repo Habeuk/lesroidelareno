@@ -30,6 +30,14 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
           return AccessResult::allowed();
         // On empeche l'acces au données appartenant à un autre domaine.
         elseif (!$isAdministrator && !$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+          $db = [
+            "Entity domaine" => $entity->{$field_domain_access}->target_id,
+            'Current domaine' => lesroidelareno::getCurrentDomainId(),
+            'uid' => lesroidelareno::getCurrentUserId(),
+            'bundle' => $entity->bundle()
+          ];
+          $message = "Entity : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
+          \Drupal::logger('lesroidelareno')->info($message, $db);
           return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
         }
         elseif ($entity->isPublished()) {
@@ -41,6 +49,14 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
         if ($isAdministrator)
           return AccessResult::allowed();
         elseif (!$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
+          $db = [
+            "Entity domaine" => $entity->{$field_domain_access}->target_id,
+            'Current domaine' => lesroidelareno::getCurrentDomainId(),
+            'uid' => lesroidelareno::getCurrentUserId(),
+            'bundle' => $entity->bundle()
+          ];
+          $message = "Entity : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
+          \Drupal::logger('lesroidelareno')->info($message, $db);
           return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
         }
         elseif ($isOwnerSite) {

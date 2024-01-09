@@ -41,12 +41,14 @@ trait AccessDefault {
         // On empeche l'acces au données appartenant à un autre domaine.
         // NB: un contenu appartient à seul domaine.
         elseif (!$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
-          // $db = [
-          // "Entity domaine" => $entity->{$field_domain_access}->target_id,
-          // 'Current domaine' => lesroidelareno::getCurrentDomainId(),
-          // 'uid' => lesroidelareno::getCurrentUserId()
-          // ];
+          $db = [
+            "Entity domaine" => $entity->{$field_domain_access}->target_id,
+            'Current domaine' => lesroidelareno::getCurrentDomainId(),
+            'uid' => lesroidelareno::getCurrentUserId(),
+            'bundle' => $entity->bundle()
+          ];
           $message = "Entity : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
+          \Drupal::logger('lesroidelareno')->info($message, $db);
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException($message);
         }
         elseif ($entity->isPublished()) {
@@ -62,12 +64,14 @@ trait AccessDefault {
         // !$entity->isNew() car on peut generer les données à partir d'un autre
         // domaine ou pour un autre domaine.
         if (!$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
-          // $db = [
-          // "Entity domaine" => $entity->{$field_domain_access}->target_id,
-          // 'Current domaine' => lesroidelareno::getCurrentDomainId(),
-          // 'uid' => lesroidelareno::getCurrentUserId()
-          // ];
+          $db = [
+            "Entity domaine" => $entity->{$field_domain_access}->target_id,
+            'Current domaine' => lesroidelareno::getCurrentDomainId(),
+            'uid' => lesroidelareno::getCurrentUserId(),
+            'bundle' => $entity->bundle()
+          ];
           $message = "Entity : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
+          \Drupal::logger('lesroidelareno')->info($message, $db);
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException($message);
         }
         elseif ($isOwnerSite && $entity->getOwnerId() == lesroidelareno::getCurrentUserId()) {
