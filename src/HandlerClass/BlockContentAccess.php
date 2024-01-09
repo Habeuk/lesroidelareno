@@ -36,7 +36,7 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
             'uid' => lesroidelareno::getCurrentUserId(),
             'bundle' => $entity->bundle()
           ];
-          $message = "Entity $entity->id() : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
+          $message = "Entity " . $entity->id() . " : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
           \Drupal::logger('lesroidelareno')->info($message, $db);
           return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
         }
@@ -55,7 +55,7 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
             'uid' => lesroidelareno::getCurrentUserId(),
             'bundle' => $entity->bundle()
           ];
-          $message = "Entity $entity->id() : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
+          $message = "Entity " . $entity->id() . " : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
           \Drupal::logger('lesroidelareno')->info($message, $db);
           return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
         }
