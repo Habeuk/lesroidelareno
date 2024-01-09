@@ -47,7 +47,7 @@ trait AccessDefault {
             'uid' => lesroidelareno::getCurrentUserId(),
             'bundle' => $entity->bundle()
           ];
-          $message = "Entity : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
+          $message = "Entity $entity->id() : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
           \Drupal::logger('lesroidelareno')->info($message, $db);
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException($message);
         }
@@ -70,7 +70,7 @@ trait AccessDefault {
             'uid' => lesroidelareno::getCurrentUserId(),
             'bundle' => $entity->bundle()
           ];
-          $message = "Entity : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
+          $message = "Entity $entity->id() : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
           \Drupal::logger('lesroidelareno')->info($message, $db);
           throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException($message);
         }
