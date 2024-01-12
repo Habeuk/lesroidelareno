@@ -22,6 +22,7 @@ use Drupal\lesroidelareno\HandlerClass\CommervceProductVariationAccess;
 use Drupal\lesroidelareno\HandlerClass\WebformAccess;
 use Drupal\lesroidelareno\HandlerClass\RdvConfigAccess;
 use Drupal\lesroidelareno\HandlerClass\MenuLinkContentAccess;
+use Drupal\lesroidelareno\HandlerClass\Menu;
 use Drupal\lesroidelareno\HandlerClass\BookingConfigAccess;
 use Drupal\domain_source\DomainSourceElementManagerInterface;
 use Drupal\domain_access\DomainAccessManagerInterface;
@@ -98,7 +99,7 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
     // if (!empty($site_config)) {
     // \Drupal::entityTypeManager()->getStorage('domain_ovh_entity')->load($id);
     // $siteConfValue = Json::decode($site_config);
-    
+    // There are no restrictions on viewing the label of a date format.
     // $siteConfValue['mail'] = $validMail;
     // }
     // }
@@ -153,10 +154,7 @@ function lesroidelareno_entity_type_alter(array &$entity_types) {
   $entity_types['rdv_config_entity']->setHandlerClass('access', RdvConfigAccess::class);
   $entity_types['menu_link_content']->setHandlerClass('access', MenuLinkContentAccess::class);
   $entity_types['booking_config']->setHandlerClass('access', BookingConfigAccess::class);
-  // $entity_types['cv_entity']->setHandlerClass('access',
-  // configThemeAccess::class);
-  // $entity_types['user']->setListBuilderClass(MyModuleListBuilder::class); //
-  // Other solution possible
+  $entity_types['menu']->setHandlerClass('access', Menu::class);
 }
 
 /**
