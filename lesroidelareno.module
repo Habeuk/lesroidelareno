@@ -1049,40 +1049,6 @@ function _rdv_config_entity_form_submit(array &$form, FormStateInterface $form_s
   $form_state->setRedirect('user.page');
 }
 
-/**
- * Implements hook_form_BASE_FORM_ID_alter().
- */
-function lesroidelareno_form_menu_form_alter(&$form, FormStateInterface $form_state) {
-  // Load the current node type configuration entity.
-  /**
-   *
-   * @var \Drupal\system\Entity\Menu $menu
-   */
-  $menu = $form_state->getFormObject()->getEntity();
-  $form['domain_id'] = [
-    '#type' => 'textfield',
-    '#title' => t('Domain Id'),
-    '#default_value' => $menu->getThirdPartySetting('lesroidelareno', 'domain_id', lesroidelareno::getCurrentDomainId())
-  ];
-  $form['#entity_builders'][] = 'lesroidelareno_form_menu_form_builder';
-}
-
-/**
- * Ajoute des champs au niveau de la configuration.
- *
- * @return number
- */
-function lesroidelareno_form_menu_form_builder($entity_type, $type, &$form, FormStateInterface $form_state) {
-  /**
-   * On ajoute le champs doamin_id.
-   */
-  if (!empty($form_state->getValue('domain_id'))) {
-    $type->setThirdPartySetting('lesroidelareno', 'domain_id', $form_state->getValue('domain_id'));
-    return $form_state->getValue('domain_id');
-  }
-  $type->unsetThirdPartySetting('lesroidelareno', 'domain_id');
-}
-
 
 
 
