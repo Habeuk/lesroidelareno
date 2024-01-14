@@ -28,6 +28,10 @@ trait AccessDefault {
    * @see \Drupal\blockscontent\BlocksContentsAccessControlHandler::checkAccess()
    */
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
+    $cache_contexts = [
+      'user',
+      'url.site'
+    ];
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
     $IsAdministratorSite = lesroidelareno::userIsAdministratorSite();
@@ -37,7 +41,7 @@ trait AccessDefault {
       // Tout le monde peut voir les contenus publiées.
       case 'view':
         if ($isAdministrator)
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         // On empeche l'acces au données appartenant à un autre domaine.
         // NB: un contenu appartient à seul domaine.
         elseif (!$entity->isNew() && $entity->hasField($field_domain_access) && $entity->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
@@ -49,17 +53,17 @@ trait AccessDefault {
           ];
           $message = "Entity " . $entity->id() . " : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
           \Drupal::logger('lesroidelareno')->info($message, $db);
-          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException($message);
+          return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         elseif ($entity->isPublished()) {
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         break;
       // On met à jour si l'utilisateur est autheur ou s'il est administrateur.
       case 'update':
       case 'delete':
         if ($isAdministrator)
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         // On empeche l'acces au données appartenant à un autre domaine.
         // !$entity->isNew() car on peut generer les données à partir d'un autre
         // domaine ou pour un autre domaine.
@@ -72,18 +76,18 @@ trait AccessDefault {
           ];
           $message = "Entity " . $entity->id() . " : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
           \Drupal::logger('lesroidelareno')->info($message, $db);
-          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException($message);
+          return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         elseif ($isOwnerSite && $entity->getOwnerId() == lesroidelareno::getCurrentUserId()) {
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         elseif ($IsAdministratorSite) {
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         break;
     }
     // on bloque au cas contraire.
-    return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
+    return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
   }
   
 }

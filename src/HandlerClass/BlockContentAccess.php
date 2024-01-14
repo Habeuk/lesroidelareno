@@ -20,6 +20,9 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
    * @see \Drupal\blockscontent\BlocksContentsAccessControlHandler::checkAccess()
    */
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
+    $cache_contexts = [
+      'url.site'
+    ];
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $IsAdministratorSite = lesroidelareno::userIsAdministratorSite();
     $isAdministrator = lesroidelareno::isAdministrator();
@@ -38,7 +41,7 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
           ];
           $message = "Entity " . $entity->id() . " : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
           \Drupal::logger('lesroidelareno')->info($message, $db);
-          return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
+          return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         elseif ($entity->isPublished()) {
           return AccessResult::allowed();
@@ -57,7 +60,7 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
           ];
           $message = "Entity " . $entity->id() . " : " . $entity->getEntityTypeId() . " : " . $entity->label() . ", non accessible sur le domaine : " . lesroidelareno::getCurrentDomainId();
           \Drupal::logger('lesroidelareno')->info($message, $db);
-          return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
+          return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         elseif ($isOwnerSite) {
           return AccessResult::allowed();
@@ -67,7 +70,7 @@ class BlockContentAccess extends BlockContentAccessControlHandler {
         }
         break;
     }
-    return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
+    return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
     // return parent::checkAccess($entity, $operation, $account);
   }
   

@@ -18,26 +18,29 @@ class Menu extends MenuAccessControlHandler {
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
     $target_id = $entity->getThirdPartySetting('wb_horizon_public', 'domain_id');
-    
+    $cache_contexts = [
+      'url.site'
+    ];
+    $access = parent::checkAccess($entity, $operation, $account);
     if ($operation === 'view label') {
       if ($isAdministrator)
-        return AccessResult::allowed();
+        return $access;
       // On empeche l'acces au données appartenant à un autre domaine.
       elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
-        throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
       else
-        return AccessResult::allowed();
+        return $access;
     }
     elseif ($operation === 'view') {
       if ($isAdministrator)
-        return AccessResult::allowed();
+        return $access;
       // On empeche l'acces au données appartenant à un autre domaine.
       elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
-        throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
       elseif ($isOwnerSite)
-        return AccessResult::allowed();
+        return $access;
     }
     // Locked menus could not be deleted.
     elseif ($operation === 'delete') {
@@ -49,7 +52,7 @@ class Menu extends MenuAccessControlHandler {
           return AccessResult::allowed();
         // On empeche l'acces au données appartenant à un autre domaine.
         elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
-          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+          return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         elseif ($isOwnerSite) {
           return AccessResult::allowed();
@@ -59,9 +62,9 @@ class Menu extends MenuAccessControlHandler {
     elseif ($operation === 'update') {
       if ($isAdministrator)
         return AccessResult::allowed();
-      // On empeche l'acces au données appartenant à un autre domaine.
+      // On empeche l'acces aux données appartenant à un autre domaine.
       elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
-        throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+        return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
       elseif ($isOwnerSite) {
         return AccessResult::allowed();

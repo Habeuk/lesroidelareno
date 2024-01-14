@@ -28,7 +28,11 @@ class RdvConfigAccess extends EntityAccessControlHandler {
   public function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
-    return AccessResult::allowed();
+    $cache_contexts = [
+      'user',
+      'url.site'
+    ];
+    return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
   }
   
 }

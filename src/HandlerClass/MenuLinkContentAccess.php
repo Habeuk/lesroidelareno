@@ -17,6 +17,10 @@ class MenuLinkContentAccess extends MenuLinkContentAccessControlHandler {
    * @see \Drupal\blockscontent\BlocksContentsAccessControlHandler::checkAccess()
    */
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
+    parent::checkAccess($entity, $operation, $account);
+    $cache_contexts = [
+      'url.site'
+    ];
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
     switch ($operation) {
@@ -67,7 +71,7 @@ class MenuLinkContentAccess extends MenuLinkContentAccessControlHandler {
         }
     }
     // on bloque au cas contraire.
-    return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
+    return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
   }
   
 }

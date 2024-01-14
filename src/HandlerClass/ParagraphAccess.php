@@ -32,28 +32,31 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
     $isAdministrator = lesroidelareno::isAdministrator();
     $IsAdministratorSite = lesroidelareno::userIsAdministratorSite();
     $field_domain_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
-    
+    $cache_contexts = [
+      'user',
+      'url.site'
+    ];
     switch ($operation) {
       // Tout le monde peut voir les contenus publiées.
       case 'view':
         if ($isAdministrator)
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
         // On empeche l'acces au données appartenant à un autre domaine.
         elseif (!$isAdministrator && !$paragraph->isNew() && $paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
-          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+          return AccessResult::forbidden()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
         }
         elseif ($paragraph->isPublished()) {
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
         }
         break;
       // On met à jour si l'utilisateur est autheur ou s'il est administrateur.
       case 'update':
       case 'delete':
         if ($isAdministrator)
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
         // On empeche l'acces au données appartenant à un autre domaine.
         elseif (!$paragraph->isNew() && $paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
-          throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+          return AccessResult::forbidden()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
         }
         elseif ($isOwnerSite || $IsAdministratorSite) {
           // si on parvient à identifier le parent.
@@ -72,15 +75,15 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
             
             // $role = \Drupal\user\Entity\Role::load('gerant_de_site_web');
             // dump($role->getPermissions());
-            return AccessResult::allowed();
+            return AccessResult::allowed()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
           }
           elseif ($IsAdministratorSite)
-            return AccessResult::allowed();
+            return AccessResult::allowed()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
         }
         break;
     }
     // on bloque au cas contraire.
-    return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
+    return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheContexts($cache_contexts);
   }
   
 }
