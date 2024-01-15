@@ -40,7 +40,9 @@ class Menu extends MenuAccessControlHandler {
         return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
       elseif ($isOwnerSite)
-        return $access;
+        return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
+      else
+        $access;
     }
     // Locked menus could not be deleted.
     elseif ($operation === 'delete') {
@@ -49,25 +51,25 @@ class Menu extends MenuAccessControlHandler {
       }
       else {
         if ($isAdministrator)
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         // On empeche l'acces au données appartenant à un autre domaine.
         elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
           return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         elseif ($isOwnerSite) {
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
       }
     }
     elseif ($operation === 'update') {
       if ($isAdministrator)
-        return AccessResult::allowed();
+        return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       // On empeche l'acces aux données appartenant à un autre domaine.
       elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
         return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
       elseif ($isOwnerSite) {
-        return AccessResult::allowed();
+        return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
     }
     // on bloque au cas contraire.
