@@ -133,6 +133,25 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
 }
 
 /**
+ * implement hook_layoutgenentitystyles_presave_alter_status
+ * Le traitement effectué par "layoutgenentitystyles_entity_presave" est
+ * conssomateur de ressources et parfois dans des situations unitiles.
+ * On ajuste son execution comlete via la variable $status.
+ */
+function lesroidelareno_layoutgenentitystyles_presave_alter_status($status, EntityInterface $entity) {
+  $status = false;  
+  /**
+   * On se rassure egalement que l'utilisateur est sur le bon domaine.
+   *
+   * @var \Drupal\Core\Entity\ContentEntityBase $entity
+   */
+  $domaine_id = $entity->get(\Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD)->target_id;
+  if (Lesroidelareno::getCurrentDomainId() == $domaine_id) {
+    $status = true;
+  }
+}
+
+/**
  * Cette fonction permet de de controller la maniere donc les contenus vont
  * s'afficher, etre creer, supprimer.
  * ( Pour les utilisateurs supplementaire qui pourront etre ajouter, on doit
