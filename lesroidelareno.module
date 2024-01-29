@@ -8,7 +8,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\file\Entity\File;
-use Drupal\user\Entity\User;
+use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\views\ViewExecutable;
 use Drupal\lesroidelareno\HandlerClass\BlocksContentsListBuilder;
 use Drupal\lesroidelareno\HandlerClass\BlocksContentsAccess;
@@ -139,7 +139,13 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
  * On ajuste son execution comlete via la variable $status.
  */
 function lesroidelareno_layoutgenentitystyles_presave_alter_status($status, EntityInterface $entity) {
-  $status = false;  
+  $status = false;
+  if ($entity->getEntityTypeId() == 'entity_view_display') {
+    if (lesroidelareno::isAdministrator())
+      return true;
+    return false;
+  }
+  
   /**
    * On se rassure egalement que l'utilisateur est sur le bon domaine.
    *
