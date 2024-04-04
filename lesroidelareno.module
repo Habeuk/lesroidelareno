@@ -1,4 +1,5 @@
 <?php
+
 use Drupal\Core\Url;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -45,7 +46,7 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
     $isAdministrator = false;
     if (in_array('administrator', $roles))
       $isAdministrator = true;
-    
+
     /**
      * Force l'ajout du domaine encours au entites ci-apres.
      * "commerce_order_item" porte les elements du panier.
@@ -59,9 +60,9 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
       case 'commerce_order_item': // identification des elemnts du panier.
       case 'commerce_payment': // identification d'un paiement
       case 'commerce_payment_method': // identification d'une methode de
-                                       // paiment
-                                       // enregistrer
-        
+        // paiment
+        // enregistrer
+
         $setDomaine = true;
         break;
     }
@@ -77,8 +78,7 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
         $entity->set(DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD, lesroidelareno::getCurrentDomainId());
         $entity->set(DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD, lesroidelareno::getCurrentDomainId());
       }
-    }
-    elseif ($entity_id == 'paragraph' || $entity_id == 'menu_link_content' || $entity_id == 'block_content') {
+    } elseif ($entity_id == 'paragraph' || $entity_id == 'menu_link_content' || $entity_id == 'block_content') {
       /**
        * Lors de la creation d'un paragraph (ou ...) on remplit automatiquement
        * le champs'wbh_user_id'.
@@ -113,8 +113,7 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
       if (!$domaines) {
         $entity->set('field_domain_access', lesroidelareno::getCurrentDomainId());
       }
-    }
-    else {
+    } else {
       if (!$isAdministrator) {
         /**
          * Pour un nouveau (blocks_contents, node ...), si l'utilisateur n'a
@@ -145,7 +144,7 @@ function lesroidelareno_layoutgenentitystyles_presave_alter_status($status, Enti
       return true;
     return false;
   }
-  
+
   /**
    * On se rassure egalement que l'utilisateur est sur le bon domaine.
    *
@@ -201,28 +200,22 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
     $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragraph entity.'))->setDisplayOptions('form', [ //
     ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
     ])->setDescription("Idealement on doit pouvoir identifier le paragraph à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
-  }
-  
-  elseif ($entity_type->id() == 'dis_period_entity') {
+  } elseif ($entity_type->id() == 'dis_period_entity') {
     __add_fields_domain($fields);
-  }
-  elseif ($entity_type->id() == 'equipes_entity') {
+  } elseif ($entity_type->id() == 'equipes_entity') {
     __add_fields_domain($fields);
-  }
-  elseif ($entity_type->id() == 'submit_rdv_entity') {
+  } elseif ($entity_type->id() == 'submit_rdv_entity') {
     __add_fields_domain($fields);
-  }
-  elseif ($entity_type->id() == 'files_style') {
+  } elseif ($entity_type->id() == 'files_style') {
     __add_fields_domain($fields);
-  }
-  elseif ($entity_type->id() == 'menu_link_content' || $entity_type->id() == 'block_content') {
+  } elseif ($entity_type->id() == 'menu_link_content' || $entity_type->id() == 'block_content') {
     // on ajoute un champs pour identifier l'auteur du menu.
     // ( ca champs doit etre desactiver à l'avichage par defaut ).
     $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setDisplayOptions('form', [ //
     ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
     ])->setDescription("Idealement on doit pouvoir identifier l'auteur d'un element de menu à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
   }
-  
+
   return $fields;
 }
 
@@ -377,15 +370,13 @@ function lesroidelareno_inline_entity_form_table_fields_alter(array &$fields, ar
       'label' => 'Domain access',
       'weight' => 0
     ];
-  }
-  elseif ($context['entity_type'] == 'commerce_product') {
+  } elseif ($context['entity_type'] == 'commerce_product') {
     $fields[\Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD] = [
       'type' => 'field',
       'label' => 'Domain access',
       'weight' => 0
     ];
-  }
-  elseif ($context['entity_type'] == 'block_content') {
+  } elseif ($context['entity_type'] == 'block_content') {
     $fields['id'] = [
       'type' => 'field',
       'label' => t('ID'),
@@ -401,15 +392,13 @@ function lesroidelareno_inline_entity_form_table_fields_alter(array &$fields, ar
       'label' => 'Type',
       'weight' => 0
     ];
-  }
-  elseif ($context['entity_type'] == 'blocks_contents') {
+  } elseif ($context['entity_type'] == 'blocks_contents') {
     $fields[\Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD] = [
       'type' => 'field',
       'label' => 'Domain access',
       'weight' => 0
     ];
-  }
-  elseif ($context['entity_type'] == 'paragraph') {
+  } elseif ($context['entity_type'] == 'paragraph') {
     $fields[\Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD] = [
       'type' => 'field',
       'label' => 'Domain access',
@@ -466,8 +455,7 @@ function lesroidelareno_preprocess_html(&$vars) {
       $Attribute = new Attribute();
       $Attribute->addClass('container');
       $vars['page']['content']['attributes'] = $Attribute;
-    }
-    else
+    } else
       $vars['page']['content']['attributes']->addClass('container');
   }
   // On charge la bibiotheque pour ameliorer la presentation de l'edition des
@@ -513,8 +501,7 @@ function lesroidelareno_preprocess_facets_result_item__checkbox(&$vars) {
           '#style_name' => $image_style,
           '#uri' => $file->getFileUri()
         ];
-    }
-    else {
+    } else {
       $settings = $term->get($field_name)->getSettings();
       // dump($settings['default_image']);
       if (!empty($settings['default_image'])) {
@@ -568,7 +555,7 @@ function lesroidelareno_preprocess_pager(array &$variables) {
         }
       }
     }
-    
+
     /**
      * On recrit les url pour les cas ou ces derniers contientienne target_id.
      */
@@ -651,7 +638,7 @@ function lesroidelareno_views_pre_build(ViewExecutable $view) {
           $args[] = $val['value'];
         }
       }
-      
+
       $view->setArguments($args);
     }
     //
@@ -693,8 +680,7 @@ function _lesroidelareno_get_product_theme(Drupal\commerce_product\Entity\Produc
   $val = $product->get('field_en_promotion_sur_les_roide')->offsetGet(0)->getValue();
   if (!empty($val['value'])) {
     return 'teaser_externe';
-  }
-  else {
+  } else {
     return 'teaser';
   }
 }
@@ -718,7 +704,7 @@ function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface
     'user_id',
     'entities_duplicate'
   ];
-  
+
   if (in_array($field_definition->getName(), $disabledFields)) {
     if (lesroidelareno::isAdministrator())
       return AccessResult::allowed();
@@ -761,7 +747,7 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
         $query->condition('cp_fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
       }
     }
-    
+
     /**
      * On filtre les produits dans le panier en fonction du domaine encours.
      */
@@ -790,46 +776,26 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
      * Le but principal est de limité les contenus au domaine.
      */
     elseif ($query->hasTag('entity_query_paragraph')) {
-    }
-    elseif ($query->hasTag('entity_query_config_theme_entity')) {
-    }
-    elseif ($query->hasTag('entity_query_blocks_contents')) {
-    }
-    elseif ($query->hasTag('entity_query_commerce_product_variation')) {
-    }
-    elseif ($query->hasTag('entity_query_site_type_datas')) {
-    }
-    elseif ($query->hasTag('entity_query_node')) {
-    }
-    elseif ($query->hasTag('entity_query_commerce_order')) {
-    }
-    elseif ($query->hasTag('entity_query_block_content')) {
-    }
-    elseif ($query->hasTag('entity_query_commerce_product')) {
-    }
-    elseif ($query->hasTag('entity_query_commerce_order_item')) {
-    }
-    elseif ($query->hasTag('entity_query_comment')) {
-    }
-    elseif ($query->hasTag('entity_query_media')) {
-    }
-    elseif ($query->hasTag('entity_query_user')) {
-    }
-    elseif ($query->hasTag('entity_query_commerce_shipment')) {
-    }
-    elseif ($query->hasTag('entity_query_profile')) {
-    }
-    elseif ($query->hasTag('entity_query_taxonomy_term')) {
-    }
-    elseif ($query->hasTag('site_type_datas_load_multiple')) {
-    }
-    elseif ($query->hasTag('entity_query_commerce_product_attribute_value')) {
-    }
-    elseif ($query->hasTag('entity_query_site_internet_entity')) {
-    }
-    elseif ($query->hasTag('entity_query_model_cv')) {
-    }
-    elseif ($query->hasTag('entity_query_commerce_store')) {
+    } elseif ($query->hasTag('entity_query_config_theme_entity')) {
+    } elseif ($query->hasTag('entity_query_blocks_contents')) {
+    } elseif ($query->hasTag('entity_query_commerce_product_variation')) {
+    } elseif ($query->hasTag('entity_query_site_type_datas')) {
+    } elseif ($query->hasTag('entity_query_node')) {
+    } elseif ($query->hasTag('entity_query_commerce_order')) {
+    } elseif ($query->hasTag('entity_query_block_content')) {
+    } elseif ($query->hasTag('entity_query_commerce_product')) {
+    } elseif ($query->hasTag('entity_query_commerce_order_item')) {
+    } elseif ($query->hasTag('entity_query_comment')) {
+    } elseif ($query->hasTag('entity_query_media')) {
+    } elseif ($query->hasTag('entity_query_user')) {
+    } elseif ($query->hasTag('entity_query_commerce_shipment')) {
+    } elseif ($query->hasTag('entity_query_profile')) {
+    } elseif ($query->hasTag('entity_query_taxonomy_term')) {
+    } elseif ($query->hasTag('site_type_datas_load_multiple')) {
+    } elseif ($query->hasTag('entity_query_commerce_product_attribute_value')) {
+    } elseif ($query->hasTag('entity_query_site_internet_entity')) {
+    } elseif ($query->hasTag('entity_query_model_cv')) {
+    } elseif ($query->hasTag('entity_query_commerce_store')) {
     }
     /**
      * Filtre sur l'entité : files_style
@@ -859,16 +825,11 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     // lesroidelareno::getCurrentDomainId());
     // }
     elseif ($query->hasTag('entity_query_cv_entity')) {
-    }
-    elseif ($query->hasTag('entity_query_shortcut')) {
-    }
-    elseif ($query->hasTag('entity_query_booking_reservation')) {
-    }
-    elseif ($query->hasTag('user_load_multiple')) {
-    }
-    elseif ($query->hasTag('entity_query_node')) {
-    }
-    else {
+    } elseif ($query->hasTag('entity_query_shortcut')) {
+    } elseif ($query->hasTag('entity_query_booking_reservation')) {
+    } elseif ($query->hasTag('user_load_multiple')) {
+    } elseif ($query->hasTag('entity_query_node')) {
+    } else {
       // dump($query->getTables());
       // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
       // 'lesroidelareno_query_alter', true);
@@ -886,7 +847,7 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
  * @param \Drupal\Core\Database\Query\AlterableInterface $query
  */
 function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query\AlterableInterface $query) {
-  
+
   // \Drupal::messenger()->addMessage('test ::
   // lesroidelareno_query_entity_reference_alter');
   /**
@@ -894,12 +855,17 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
    * @var \Drupal\node\Plugin\EntityReferenceSelection\NodeSelection $entity_reference
    */
   $entity_reference = $query->getMetaData('entity_reference_selection_handler');
-  
+
   $settings = $entity_reference->getConfiguration();
   if (!empty($settings['target_type'])) {
     // il faudra ajouter manuelement les entites qui varient en function du
     // domaine.
     switch ($settings['target_type']) {
+      case 'hbk_collection':
+        $query->addJoin('INNER', 'hbk_collection__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+        $query->addField('fda', 'field_domain_access_target_id');
+        break;
       case 'node':
         $query->addJoin('INNER', 'node__field_domain_access', 'fda', 'fda.entity_id=base_table.nid');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
@@ -948,7 +914,7 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
-      // on doit également ajouté le fitre pour les elements suivants :
+        // on doit également ajouté le fitre pour les elements suivants :
       case 'commerce_payment':
         $query->addJoin('INNER', 'commerce_payment__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
@@ -974,17 +940,17 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
       case 'files_style':
         // $query->condition('base_table.field_domain_access',
         // lesroidelareno::getCurrentDomainId());
-        
+
         break;
-      // Liste d'entites à ignorer.
+        // Liste d'entites à ignorer.
       case 'site_type_datas':
       case 'taxonomy_term':
       case 'user':
       case 'file':
       case 'commerce_product_variation':
-      // car ils dependent du produit et le
-      // produit est deja filtrer.
-      
+        // car ils dependent du produit et le
+        // produit est deja filtrer.
+
       case 'commerce_store':
         // ignore car on a pas prevus une separation de boutique. On verra la
         // necessite ou pas.
@@ -994,23 +960,23 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         break;
     }
   }
-  
+
   // $field = $query->getMetadata('field');
   // if ($field['field_name'] != 'field_foo') {
   // // This is not the field we want to alter.
   // return;
   // }
-  
+
   // // Get the base table.
   // $tables = $query->getTables();
   // $base_table = key($tables);
-  
+
   // // Join to the new table.
   // $field_bar = field_info_field('field_drawer_type');
   // $table_name = _field_sql_storage_tablename($field_bar);
   // $query->innerJoin($table_name, 'drawer_type', '%alias.entity_id = ' .
   // $base_table . '.tid');
-  
+
   // // Add conditions.
   // $query->condition('drawer_type.field_bar_value', 'baz', '=');
 }
@@ -1048,8 +1014,7 @@ function lesroidelareno_form_alter(&$form, FormStateInterface $form_state, $form
   // Redirection vers la page permettant de gerer les prises de rendez-vous.
   elseif ($form_id == 'rdv_config_entity_form') {
     $form['actions']['submit']['#submit'][] = '_rdv_config_entity_form_submit';
-  }
-  else {
+  } else {
     // dump($form_id);
   }
 }
@@ -1073,9 +1038,3 @@ function _prise_rendez_vous_default_configs_submit(array &$form, FormStateInterf
 function _rdv_config_entity_form_submit(array &$form, FormStateInterface $form_state) {
   $form_state->setRedirect('user.page');
 }
-
-
-
-
-
-
