@@ -796,12 +796,9 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
 
       $route_name = explode('.', \Drupal::service('current_route_match')->getRouteName());
       if (!in_array('taxonomy_vocabulary', $route_name)) {
-        $andConditions = $query->andConditionGroup()
-          ->condition('tda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId())
-          ->condition('tdata.is_public', FALSE);
         $orConditions = $query->orConditionGroup()
-          ->condition($andConditions)
-          ->condition('tdata.is_public', TRUE);
+          ->condition('tdata.is_public', TRUE)
+          ->condition('tda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
 
         $query->condition($orConditions);
       }
@@ -811,12 +808,9 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
       if (!in_array('taxonomy_vocabulary', $route_name)) {
         $query->addJoin('LEFT', 'taxonomy_term__field_domain_access', 'tda', 'tda.entity_id=t  .tid');
 
-        $andConditions = $query->andConditionGroup()
-          ->condition('tda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId())
-          ->condition('t.is_public', FALSE);
         $orConditions = $query->orConditionGroup()
-          ->condition($andConditions)
-          ->condition('t.is_public', TRUE);
+          ->condition('t.is_public', TRUE)
+          ->condition('tda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
 
         $query->condition($orConditions);
       }
