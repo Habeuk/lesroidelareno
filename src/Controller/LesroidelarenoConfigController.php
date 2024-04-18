@@ -251,10 +251,8 @@ class LesroidelarenoConfigController extends ControllerBase {
         $CommercePaymentConfig = CommercePaymentConfig::create([
           'domain_id' => $this->domainNegotiator->getActiveId(),
           'payment_plugin_id' => $payment_plugin_id,
-          'active' => false
+          'active' => true
         ]);
-
-        $CommercePaymentConfig->save();
       } else {
         $CommercePaymentConfig = reset($datas);
       }
