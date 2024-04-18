@@ -154,46 +154,54 @@ class LesroidelarenoConfigController extends ControllerBase {
       return $this->forbittenMessage();
     }
     /**
+     * 
+     * changer pour charger les payments qui ont un statut actif. 
+     * ce chargement n'est fait que lorsqu'on a plugin_id 'list-all'
      * Contient les payments qui peuvent etre utiliser par les clients.
      *
      * @var array $validPayments
      */
-    $validPayments = [
-      'stripe_cart_by_domain',
-      'commander',
-      'paiement_acompte'
-    ];
-    // permet de lister tous les plugins
+    // $validPayments = [
+    //   'stripe_cart_by_domain',
+    //   'commander',
+    //   'paiement_acompte'
+    // ];
+    // permet de lister tous les moyens de payment
     if ($payment_plugin_id == 'list-all') {
       $payment_manager = $this->entityTypeManager()->getStorage("commerce_payment_gateway");
       $commerceConfigManager = $this->entityTypeManager()->getStorage("commerce_payment_config");
 
+      $datas = [];
+      /**
+       * chargement des moyens de paiement que peuvent utiliser les clients wb-horizon
+       * @var array<PaymentGateway> $validPayments
+       */
+      $validPayments = $payment_manager->loadByProperties([
+        "status" => TRUE
+      ]);
+
       $header = [
-        'id' => '#id',
         'name' => t('Name'),
         'statut' => t('Active'),
         'operations' => t('Operations')
       ];
       $rows = [];
-      foreach ($validPayments as $payment) {
-        $datas = $commerceConfigManager->loadByProperties([
+      foreach ($validPayments as &$entity) {
+        $configsLoaded = $commerceConfigManager->loadByProperties([
           'domain_id' => $this->domainNegotiator->getActiveId(),
-          'payment_plugin_id' => $payment
+          'payment_plugin_id' => $entity->id()
         ]);
         /**
          * @var \Drupal\lesroidelareno\Entity\CommercePaymentConfig|boolean $configPayment
          */
-        $configPayment = reset($datas);
-        // dd($configPayment);
-        $statut = $configPayment && $configPayment->get("active")->getValue()[0];
-        $entity = $payment_manager->load($payment);
+        $configPayment = reset($configsLoaded);
+        $statut = $configPayment && (int)$configPayment->get("active")->getValue()[0]["value"];
         /**
          *
          * @var \Drupal\blockscontent\Entity\BlocksContents $entity
          */
         $id = $entity->id();
         $rows[$id] = [
-          'id' => $id,
           'name' => $entity->hasLinkTemplate('canonical') ? [
             'data' => [
               '#type' => 'link',
@@ -239,8 +247,10 @@ class LesroidelarenoConfigController extends ControllerBase {
         $build['pager'] = [
           '#type' => 'pager'
         ];
+
         $datas[] = $build;
       }
+
       return $datas;
     } else {
       $datas = $this->entityTypeManager()->getStorage('commerce_payment_config')->loadByProperties([
