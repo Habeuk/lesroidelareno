@@ -165,9 +165,9 @@ class LesroidelarenoConfigController extends ControllerBase {
     ];
     // permet de lister tous les plugins
     if ($payment_plugin_id == 'list-all') {
-      $links = [];
-
       $payment_manager = $this->entityTypeManager()->getStorage("commerce_payment_gateway");
+      $commerceConfigManager = $this->entityTypeManager()->getStorage("commerce_payment_config");
+
       $header = [
         'id' => '#id',
         'name' => t('Name'),
@@ -176,8 +176,17 @@ class LesroidelarenoConfigController extends ControllerBase {
       ];
       $rows = [];
       foreach ($validPayments as $payment) {
+        $datas = $commerceConfigManager->loadByProperties([
+          'domain_id' => $this->domainNegotiator->getActiveId(),
+          'payment_plugin_id' => $payment
+        ]);
+        /**
+         * @var \Drupal\lesroidelareno\Entity\CommercePaymentConfig|boolean $configPayment
+         */
+        $configPayment = reset($datas);
+        // dd($configPayment);
+        $statut = $configPayment && $configPayment->get("active")->getValue()[0];
         $entity = $payment_manager->load($payment);
-        // dump([$entity]);
         /**
          *
          * @var \Drupal\blockscontent\Entity\BlocksContents $entity
@@ -193,7 +202,7 @@ class LesroidelarenoConfigController extends ControllerBase {
               '#url' => $entity->toUrl('canonical')
             ]
           ] : $entity->label(),
-          'statut' => $entity->get("status") ? t("Yes") : t("No"),
+          'statut' => $statut ? t("Yes") : t("No"),
           'operations' => [
             'data' => [
               "#type" => "operations",
@@ -241,8 +250,10 @@ class LesroidelarenoConfigController extends ControllerBase {
       if (!$datas) {
         $CommercePaymentConfig = CommercePaymentConfig::create([
           'domain_id' => $this->domainNegotiator->getActiveId(),
-          'payment_plugin_id' => $payment_plugin_id
+          'payment_plugin_id' => $payment_plugin_id,
+          'active' => false
         ]);
+
         $CommercePaymentConfig->save();
       } else {
         $CommercePaymentConfig = reset($datas);
