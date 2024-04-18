@@ -9,6 +9,7 @@ use Drupal\prise_rendez_vous\Entity\RdvConfigEntity;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\commerce_payment\Entity\PaymentGateway;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\lesroidelareno\Entity\CommercePaymentConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -26,19 +27,32 @@ class LesroidelarenoConfigController extends ControllerBase {
    * @var \Drupal\domain\DomainNegotiatorInterface
    */
   protected $domainNegotiator;
-  
+
+
+  /**
+   *
+   * @var EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+
   public static function create(ContainerInterface $container) {
-    return new static($container->get('domain.negotiator'));
+    return new static(
+      $container->get('domain.negotiator'),
+      $container->get('entity_type.manager')
+    );
   }
-  
+
   /**
    *
    * @param DomainNegotiatorInterface $domainNegotiator
+   * @param EntityTypeManagerInterface $entity_type_manager
    */
-  public function __construct(DomainNegotiatorInterface $domainNegotiator) {
+  public function __construct(DomainNegotiatorInterface $domainNegotiator, EntityTypeManagerInterface $entity_type_manager) {
+    $this->entityTypeManager = $entity_type_manager;
     $this->domainNegotiator = $domainNegotiator;
   }
-  
+
   /**
    * Accorde les roles necessaire permettant de poursuivre la creation du site.
    */
@@ -55,7 +69,7 @@ class LesroidelarenoConfigController extends ControllerBase {
     }
     return HttpResponse::response('user must connecte', 400, 'user must connecte');
   }
-  
+
   /**
    * permet de gerer les menus.
    */
@@ -104,7 +118,7 @@ class LesroidelarenoConfigController extends ControllerBase {
     $this->messenger()->addError("impossible de determiner votre menu, veillez contacter l'administrateur");
     return [];
   }
-  
+
   /**
    *
    * @param string $menu
@@ -130,7 +144,7 @@ class LesroidelarenoConfigController extends ControllerBase {
     // dump(\Drupal::routeMatch()->getRouteObject()->getDefaults());
     return $menuForm;
   }
-  
+
   /**
    * permet de lister les paiements et de les configurees par le prorietaire du
    * site.
@@ -152,27 +166,74 @@ class LesroidelarenoConfigController extends ControllerBase {
     // permet de lister tous les plugins
     if ($payment_plugin_id == 'list-all') {
       $links = [];
-      foreach ($validPayments as $value) {
-        $PaymentGateway = PaymentGateway::load($value);
-        if ($PaymentGateway) {
-          $links[] = [
-            'title' => $PaymentGateway->label(),
-            'url' => Url::fromRoute("lesroidelareno.payement_gateways", [
-              'payment_plugin_id' => $PaymentGateway->id()
-            ], [
-              'query' => [
-                'destination' => $request->getPathInfo()
-              ]
-            ])
-          ];
-        }
-      }
-      return [
-        '#theme' => 'links',
-        '#links' => $links
+
+      $payment_manager = $this->entityTypeManager()->getStorage("commerce_payment_gateway");
+      $header = [
+        'id' => '#id',
+        'name' => t('Name'),
+        'statut' => t('Active'),
+        'operations' => t('Operations')
       ];
-    }
-    else {
+      $rows = [];
+      foreach ($validPayments as $payment) {
+        $entity = $payment_manager->load($payment);
+        // dump([$entity]);
+        /**
+         *
+         * @var \Drupal\blockscontent\Entity\BlocksContents $entity
+         */
+        $id = $entity->id();
+        $rows[$id] = [
+          'id' => $id,
+          'name' => $entity->hasLinkTemplate('canonical') ? [
+            'data' => [
+              '#type' => 'link',
+              '#title' => $entity->label(),
+              '#weight' => 10,
+              '#url' => $entity->toUrl('canonical')
+            ]
+          ] : $entity->label(),
+          'statut' => $entity->get("status") ? t("Yes") : t("No"),
+          'operations' => [
+            'data' => [
+              "#type" => "operations",
+              "#links" => [
+                'handle' => [
+                  'title' => $this->t('Edit'),
+                  'weight' => 10,
+                  'url' => Url::fromRoute("lesroidelareno.payement_gateways", [
+                    'payment_plugin_id' => $entity->id()
+                  ], [
+                    'query' => [
+                      'destination' => $request->getPathInfo()
+                    ]
+                  ])
+                ]
+              ]
+            ]
+          ]
+        ];
+      }
+      if ($rows) {
+        $build['table'] = [
+          '#type' => 'table',
+          '#header' => $header,
+          '#title' => 'Titre de la table',
+          '#rows' => $rows,
+          '#empty' => 'Aucun contenu',
+          '#attributes' => [
+            'class' => [
+              'page-content00'
+            ]
+          ]
+        ];
+        $build['pager'] = [
+          '#type' => 'pager'
+        ];
+        $datas[] = $build;
+      }
+      return $datas;
+    } else {
       $datas = $this->entityTypeManager()->getStorage('commerce_payment_config')->loadByProperties([
         'domain_id' => $this->domainNegotiator->getActiveId(),
         'payment_plugin_id' => $payment_plugin_id
@@ -183,8 +244,7 @@ class LesroidelarenoConfigController extends ControllerBase {
           'payment_plugin_id' => $payment_plugin_id
         ]);
         $CommercePaymentConfig->save();
-      }
-      else {
+      } else {
         $CommercePaymentConfig = reset($datas);
       }
       $form = $this->entityFormBuilder()->getForm($CommercePaymentConfig);
@@ -201,14 +261,12 @@ class LesroidelarenoConfigController extends ControllerBase {
         $form['mode']['#access'] = false;
         $form['percent_value']['#access'] = false;
         $form['min_value_paid']['#access'] = false;
-      }
-      elseif ($CommercePaymentConfig->get('payment_plugin_id')->value == 'stripe_cart_by_domain') {
+      } elseif ($CommercePaymentConfig->get('payment_plugin_id')->value == 'stripe_cart_by_domain') {
         $form['percent_value']['#access'] = false;
         $form['min_value_paid']['#access'] = false;
         $this->setRequired($form['publishable_key']);
         $this->setRequired($form['secret_key']);
-      }
-      else {
+      } else {
         // dump($form['percent_value']);
         $this->setRequired($form['percent_value']);
         $this->setRequired($form['min_value_paid']);
@@ -219,7 +277,7 @@ class LesroidelarenoConfigController extends ControllerBase {
     }
     return [];
   }
-  
+
   protected function setRequired(&$field) {
     $field['#required'] = true;
     $field['widget']['#required'] = true;
@@ -230,7 +288,7 @@ class LesroidelarenoConfigController extends ControllerBase {
       }
     }
   }
-  
+
   /**
    * Permet de configurer les prises de RDV.
    *
@@ -253,10 +311,10 @@ class LesroidelarenoConfigController extends ControllerBase {
     // On cree le formulaire pour la configuration de base des prises de
     // rendez-vous.
     $form = $this->entityFormBuilder()->getForm($entity);
-    
+
     return $form;
   }
-  
+
   /**
    * Le but de cette fonction est de notifier l'administrateur l'acces à des
    * informations senssible.
@@ -270,5 +328,4 @@ class LesroidelarenoConfigController extends ControllerBase {
     $this->messenger()->addError($message);
     return [];
   }
-  
 }
