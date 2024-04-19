@@ -952,23 +952,23 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         break;
         // on doit également ajouté le fitre pour les elements suivants :
       case 'commerce_payment':
-        $query->addJoin('INNER', 'commerce_payment__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->addJoin('INNER', 'commerce_payment__field_domain_access', 'fda', 'fda.entity_id=base_table.payment_id');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'commerce_payment_method':
-        $query->addJoin('INNER', 'commerce_payment_method__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->addJoin('INNER', 'commerce_payment_method__field_domain_access', 'fda', 'fda.entity_id=base_table.method_id');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
       case 'commerce_order':
-        $query->addJoin('INNER', 'commerce_order__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->addJoin('INNER', 'commerce_order__field_domain_access', 'fda', 'fda.entity_id=base_table.order_id');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         // dump('2=> ' . $query->__toString());
         break;
       case 'commerce_order_item':
-        $query->addJoin('INNER', 'commerce_order_item__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
+        $query->addJoin('INNER', 'commerce_order_item__field_domain_access', 'fda', 'fda.entity_id=base_table.order_item_id');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         // dump('3=> ' . $query->__toString());
