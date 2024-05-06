@@ -791,11 +791,10 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     } elseif ($query->hasTag('entity_query_commerce_shipment')) {
     } elseif ($query->hasTag('entity_query_profile')) {
     } elseif ($query->hasTag('entity_query_taxonomy_term')) {
-      $query->addJoin('INNER', 'taxonomy_term_field_data', 'tdata', 'tdata.tid=base_table.tid');
-      $query->addJoin('LEFT', 'taxonomy_term__field_domain_access', 'tda', 'tda.entity_id=base_table.tid');
-
       $route_name = explode('.', \Drupal::service('current_route_match')->getRouteName());
       if (!in_array('taxonomy_vocabulary', $route_name)) {
+        $query->addJoin('INNER', 'taxonomy_term_field_data', 'tdata', 'tdata.tid=base_table.tid');
+        $query->addJoin('LEFT', 'taxonomy_term__field_domain_access', 'tda', 'tda.entity_id=base_table.tid');
         $orConditions = $query->orConditionGroup()
           ->condition('tdata.is_public', TRUE)
           ->condition('tda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
@@ -855,6 +854,13 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     } elseif ($query->hasTag('entity_query_booking_reservation')) {
     } elseif ($query->hasTag('user_load_multiple')) {
     } elseif ($query->hasTag('entity_query_node')) {
+    } elseif ($query->hasTag('entity_query_commerce_shipping_method')) {
+      $route_name = \Drupal::service('current_route_match')->getRouteName();
+      if ($route_name === "commerce_checkout.form") {
+        $query->addJoin('INNER', 'commerce_shipping_method_field_data', 'ship_data', 'ship_data.shipping_method_id=base_table.shipping_method_id');
+        $query->addJoin('LEFT', 'commerce_shipping_method__field_domain_access', 'ship_da', 'ship_da.entity_id=base_table.shipping_method_id');
+        $query->condition('ship_da.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+      }
     } else {
       // dump($query);
       // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
