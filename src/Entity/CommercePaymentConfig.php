@@ -74,10 +74,10 @@ use Drupal\user\UserInterface;
  * )
  */
 class CommercePaymentConfig extends EditorialContentEntityBase implements CommercePaymentConfigInterface {
-  
+
   use EntityChangedTrait;
   use EntityPublishedTrait;
-  
+
   /**
    *
    * {@inheritdoc}
@@ -88,38 +88,37 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
       'user_id' => \Drupal::currentUser()->id()
     ];
   }
-  
+
   /**
    *
    * {@inheritdoc}
    */
   protected function urlRouteParameters($rel) {
     $uri_route_parameters = parent::urlRouteParameters($rel);
-    
+
     if ($rel === 'revision_revert' && $this instanceof RevisionableInterface) {
       $uri_route_parameters[$this->getEntityTypeId() . '_revision'] = $this->getRevisionId();
-    }
-    elseif ($rel === 'revision_delete' && $this instanceof RevisionableInterface) {
+    } elseif ($rel === 'revision_delete' && $this instanceof RevisionableInterface) {
       $uri_route_parameters[$this->getEntityTypeId() . '_revision'] = $this->getRevisionId();
     }
-    
+
     return $uri_route_parameters;
   }
-  
+
   /**
    *
    * {@inheritdoc}
    */
   public function preSave(EntityStorageInterface $storage) {
     parent::preSave($storage);
-    
+
     // If no revision author has been set explicitly,
     // make the commerce_payment_config owner the revision author.
     if (!$this->getRevisionUser()) {
       $this->setRevisionUserId($this->getOwnerId());
     }
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -127,7 +126,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
   public function getName() {
     return $this->get('domain_id')->target_id;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -136,7 +135,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     $this->set('domain_id', $domain_id);
     return $this;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -144,7 +143,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
   public function getCreatedTime() {
     return $this->get('created')->value;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -153,7 +152,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     $this->set('created', $timestamp);
     return $this;
   }
-  
+
   /**
    * Permet de determiner si le mode.
    *
@@ -162,7 +161,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
   public function PaymentMethodIsActive() {
     return $this->get('active')->value ? true : false;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -170,7 +169,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
   public function getOwner() {
     return $this->get('user_id')->entity;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -178,7 +177,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
   public function getOwnerId() {
     return $this->get('user_id')->target_id;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -187,27 +186,27 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     $this->set('user_id', $uid);
     return $this;
   }
-  
+
   public function getPublishableKey() {
     return $this->get('publishable_key')->value;
   }
-  
+
   public function getSecretKey() {
     return $this->get('secret_key')->value;
   }
-  
+
   public function getMode() {
     return $this->get('mode')->value;
   }
-  
+
   public function getPercentValue() {
     return $this->get('percent_value')->value;
   }
-  
+
   public function getMinValuePaid() {
     return $this->get('min_value_paid')->value;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -216,17 +215,17 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     $this->set('user_id', $account->id());
     return $this;
   }
-  
+
   /**
    *
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
-    
+
     // Add the published field.
     $fields += static::publishedBaseFieldDefinitions($entity_type);
-    
+
     $fields['user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t('Authored by'))->setDescription(t('The user ID of author of the Commerce payment config entity.'))->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [
       'label' => 'hidden',
       'type' => 'author',
@@ -234,7 +233,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     ])->setDisplayOptions('form', [
       'type' => 'entity_reference_autocomplete',
       'weight' => 5,
-      
+
       'settings' => [
         'match_operator' => 'CONTAINS',
         'size' => '60',
@@ -247,7 +246,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
       'type' => 'entity_reference_autocomplete',
       'weight' => 5
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setRequired(TRUE);
-    
+
     $fields['payment_plugin_id'] = BaseFieldDefinition::create('string')->setLabel(t('Payment plugin id '))->setSettings([
       'max_length' => 100,
       'text_processing' => 0
@@ -261,7 +260,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setRequired(true);
     //
     $fields['publishable_key'] = BaseFieldDefinition::create('string')->setLabel(t('Publishable Key'))->setSettings([
-      'max_length' => 100,
+      'max_length' => 255,
       'text_processing' => 0
     ])->setDisplayOptions('view', [
       'label' => 'above',
@@ -273,7 +272,7 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE);
     //
     $fields['secret_key'] = BaseFieldDefinition::create('string')->setLabel(t('Secret Key'))->setSettings([
-      'max_length' => 100,
+      'max_length' => 255,
       'text_processing' => 0
     ])->setDefaultValue('')->setDisplayOptions('view', [
       'label' => 'above',
@@ -332,17 +331,16 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
       'type' => 'boolean_checkbox',
       'weight' => 3
     ])->setDisplayOptions('view', [])->setDisplayConfigurable('view', TRUE)->setDisplayConfigurable('form', true)->setDefaultValue(true);
-    
+
     $fields['status']->setDescription(t('A boolean indicating whether the Commerce payment config is published.'))->setDisplayOptions('form', [
       'type' => 'boolean_checkbox',
       'weight' => -3
     ]);
-    
+
     $fields['created'] = BaseFieldDefinition::create('created')->setLabel(t('Created'))->setDescription(t('The time that the entity was created.'));
-    
+
     $fields['changed'] = BaseFieldDefinition::create('changed')->setLabel(t('Changed'))->setDescription(t('The time that the entity was last edited.'));
-    
+
     return $fields;
   }
-  
 }
