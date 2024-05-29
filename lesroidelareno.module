@@ -825,8 +825,10 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     } elseif ($query->hasTag('entity_query_commerce_store')) {
     } elseif ($query->hasTag('entity_query_commerce_payment_method')) {
       //Solution temporaire à revérifier
-      if (!isset($query->getTables()["commerce_payment_method__field_domain_access"]))
-        $query->condition('commerce_payment_method.field_domain_source', lesroidelareno::getCurrentDomainId());
+      if (!isset($query->getTables()["commerce_payment_method__field_domain_access"])) {
+        $query->addJoin('LEFT', 'commerce_payment_method__field_domain_access', 'payment_da', 'payment_da.entity_id=base_table.method_id');
+        $query->condition('payment_da.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+      }
     }
     /**
      * Filtre sur l'entité : files_style
