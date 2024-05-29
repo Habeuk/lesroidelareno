@@ -112,12 +112,14 @@ class CommercePaymentConfig extends EditorialContentEntityBase implements Commer
    */
   public function preSave(EntityStorageInterface $storage) {
     parent::preSave($storage);
-    
     // If no revision author has been set explicitly,
     // make the commerce_payment_config owner the revision author.
     if (!$this->getRevisionUser()) {
       $this->setRevisionUserId($this->getOwnerId());
     }
+    // On valide egalement la methode de paiement.
+    $publishable_key = $this->getPublishableKey();
+    $secret_key = $this->getSecretKey();
   }
   
   /**
