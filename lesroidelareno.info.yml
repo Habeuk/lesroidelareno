@@ -7,3 +7,4 @@ dependencies:
   - domain:domain
   - domain_access:domain_access
   - ovh_api_rest:ovh_api_rest
+  - blockscontent:blockscontent
