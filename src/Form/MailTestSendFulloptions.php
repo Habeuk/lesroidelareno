@@ -12,14 +12,14 @@ use Symfony\Component\Mime\Address;
  * Class MailTestSendFulloptions.
  */
 class MailTestSendFulloptions extends ConfigFormBase {
-  
+
   /**
    * Drupal\Core\Mail\MailManagerInterface definition.
    *
    * @var \Drupal\lesroidelareno\Plugin\Mail\WbhPhpMailerPlugin
    */
   protected $pluginManagerMail;
-  
+
   /**
    *
    * {@inheritdoc}
@@ -29,7 +29,7 @@ class MailTestSendFulloptions extends ConfigFormBase {
     $instance->pluginManagerMail = $container->get('lesroidelareno.wbh_php_mailer_plugin');
     return $instance;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -39,7 +39,7 @@ class MailTestSendFulloptions extends ConfigFormBase {
       'lesroidelareno.mailtestsendfulloptions'
     ];
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -47,14 +47,14 @@ class MailTestSendFulloptions extends ConfigFormBase {
   public function getFormId() {
     return 'mail_test_send_fulloptions';
   }
-  
+
   /**
    *
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('lesroidelareno.mailtestsendfulloptions');
-    
+
     $form['name'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Nom du destinataire'),
@@ -106,7 +106,7 @@ class MailTestSendFulloptions extends ConfigFormBase {
     ];
     return parent::buildForm($form, $form_state);
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -145,11 +145,10 @@ class MailTestSendFulloptions extends ConfigFormBase {
     $datas['headers']['From'] = $mailbox->getBodyAsString();
     $message = $this->pluginManagerMail->format($datas);
     $result = $this->pluginManagerMail->mail($message);
-    dd($result);
+    // dd($result);
     if ($result)
       $this->messenger()->addStatus("le mail a été envoter à : " . $form_state->getValue('destinataire'));
     else
       $this->messenger()->addError("Erreur d'envoit de mail à " . $form_state->getValue('destinataire'));
   }
-  
 }

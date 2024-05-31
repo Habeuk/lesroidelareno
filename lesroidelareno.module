@@ -420,7 +420,7 @@ function lesroidelareno_js_settings_alter(array &$settings, \Drupal\Core\Asset\A
  * implement hook_editor_js_settings_alter
  */
 function lesroidelareno_editor_js_settings_alter(array &$settings) {
-  $link = '/' . drupal_get_path('module', 'lesroidelareno') . '/js/ck-editor.js';
+  $link = '/' . \Drupal::service("extension.path.resolver")->getPath('module', 'lesroidelareno') . '/js/ck-editor.js';
   foreach ($settings['editor']['formats'] as $k => $value) {
     $settings['editor']['formats'][$k]['editorSettings']['customConfig'] = $link;
   }

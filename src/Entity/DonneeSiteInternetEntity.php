@@ -72,10 +72,10 @@ use Stephane888\Debug\Repositories\ConfigDrupal;
  * )
  */
 class DonneeSiteInternetEntity extends EditorialContentEntityBase implements DonneeSiteInternetEntityInterface {
-  
+
   use EntityChangedTrait;
   use EntityPublishedTrait;
-  
+
   /**
    *
    * {@inheritdoc}
@@ -86,24 +86,23 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'user_id' => \Drupal::currentUser()->id()
     ];
   }
-  
+
   /**
    *
    * {@inheritdoc}
    */
   protected function urlRouteParameters($rel) {
     $uri_route_parameters = parent::urlRouteParameters($rel);
-    
+
     if ($rel === 'revision_revert' && $this instanceof RevisionableInterface) {
       $uri_route_parameters[$this->getEntityTypeId() . '_revision'] = $this->getRevisionId();
-    }
-    elseif ($rel === 'revision_delete' && $this instanceof RevisionableInterface) {
+    } elseif ($rel === 'revision_delete' && $this instanceof RevisionableInterface) {
       $uri_route_parameters[$this->getEntityTypeId() . '_revision'] = $this->getRevisionId();
     }
-    
+
     return $uri_route_parameters;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -119,13 +118,13 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       $this->setRevisionUserId($this->getOwnerId());
     }
   }
-  
+
   function postSave(EntityStorageInterface $storage, $update = TRUE) {
     parent::postSave($storage, $update);
     //
     $this->saveAnotherDatas();
   }
-  
+
   /**
    * Permet de creer l'entite : domain_ovh_entity qui sert de relation entre
    * drupal et ovh.
@@ -148,12 +147,13 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       // Verifie si le nom de domaine existe deja.
       $query = $this->entityTypeManager()->getStorage('domain_ovh_entity')->getQuery();
       $query->condition('sub_domain', $sub_domain . "%", 'LIKE');
+      $query->accessCheck(FALSE);
       $entities = $query->execute();
       if (!empty($entities)) {
         // cette regle ne permet pas de garantir l'unicité des valeurs du
         // champs.
         // $sub_domain .= count($entities) + 1;
-        
+
         /**
          * Example : un cas de figure ou on a en bd :
          * - test2
@@ -164,6 +164,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
         $query = $this->entityTypeManager()->getStorage('domain_ovh_entity')->getQuery();
         $query->sort('id', 'DESC');
         $query->range(0, 1);
+        $query->accessCheck(FALSE);
         $ids = $query->execute();
         $id = reset($ids) + 1;
         $sub_domain .= $id;
@@ -181,13 +182,13 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
           throw new \LogicException(" Le module ovh n'est pas correctement configurer ");
         }
         //
-        
+
         //
         $DomainOvh = \Drupal\ovh_api_rest\Entity\DomainOvhEntity::create();
         $DomainOvh->set('name', $this->getName());
         // $DomainOvh->set('zone_name', $conf['zone_name']);
         // $DomainOvh->set('field_type', $conf['field_type']);
-        
+
         $DomainOvh->setSubDomain($sub_domain);
         // $DomainOvh->set('target', $conf['target']);
         // $DomainOvh->set('path', $conf['path']);
@@ -202,19 +203,16 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
           if ($DomainOvh->id()) {
             $this->setDomainOvhEntity($DomainOvh->id());
             $this->save();
-          }
-          else
+          } else
             throw new \Exception(" Impossible de creer ou de recuperer le DomainOvhEntity. ");
-        }
-        else
+        } else
           throw new \Exception(" Impossible de creer ou de recuperer le domain. ");
       }
-    }
-    else {
+    } else {
       throw new \Exception(" Nombre de caractaire inssuffisant ");
     }
   }
-  
+
   private function enleverCaracteresSpeciaux($text) {
     $utf8 = [
       '/[áàâãªä]/u' => 'a',
@@ -234,7 +232,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
     ];
     return preg_replace(array_keys($utf8), array_values($utf8), $text);
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -242,7 +240,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
   public function getName() {
     return $this->get('name')->value;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -251,7 +249,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
     $this->set('name', $name);
     return $this;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -259,7 +257,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
   public function getCreatedTime() {
     return $this->get('created')->value;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -268,7 +266,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
     $this->set('created', $timestamp);
     return $this;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -276,7 +274,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
   public function getOwner() {
     return $this->get('user_id')->entity;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -284,7 +282,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
   public function getOwnerId() {
     return $this->get('user_id')->target_id;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -293,7 +291,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
     $this->set('user_id', $uid);
     return $this;
   }
-  
+
   /**
    *
    * {@inheritdoc}
@@ -302,7 +300,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
     $this->set('user_id', $account->id());
     return $this;
   }
-  
+
   /**
    *
    * @param integer $target_id
@@ -310,7 +308,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
   public function setTypeHomePage($target_id) {
     $this->set('type_home_page', $target_id);
   }
-  
+
   /**
    *
    * @param integer $target_id
@@ -318,18 +316,18 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
   public function setDomainOvhEntity($target_id) {
     $this->set('domain_ovh_entity', $target_id);
   }
-  
+
   public function getDomainOvhEntity() {
     return $this->get('domain_ovh_entity')->target_id;
   }
-  
+
   /**
    *
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
-    
+
     // Add the published field.
     $fields += static::publishedBaseFieldDefinitions($entity_type);
     $fields['user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t('Authored by'))->setDescription(t('The user ID of author of the Donnee site internet des utilisateurs entity.'))->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [
@@ -346,12 +344,12 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
         'placeholder' => ''
       ]
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE);
-    
+
     $fields['domain_ovh_entity'] = BaseFieldDefinition::create('entity_reference')->setLabel(t('Domaine OVH'))->setSetting('target_type', 'domain_ovh_entity')->setSetting('handler', 'default')->setDisplayOptions('form', [
       'type' => 'entity_reference_autocomplete',
       'weight' => 5
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE);
-    
+
     // 1
     $fields['name'] = BaseFieldDefinition::create('string')->setLabel(t(" What is the name of your business "))->setDescription(t(' You can change it at any time '))->setRevisionable(TRUE)->setSettings([
       'max_length' => 50,
@@ -364,7 +362,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'type' => 'string_textfield',
       'weight' => -4
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setRequired(TRUE)->addConstraint('UniqueField', [])->setTranslatable(TRUE);
-    
+
     // 2 On doit preciser le taxo plus tard.( ce dernier vient de module
     // creation de site virtuel ).
     $fields['type_site'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(" What type of site do you want to create? "))->setDisplayOptions('form', [
@@ -386,14 +384,14 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'auto_create' => false,
       'auto_create_bundle' => ''
     ])->setSetting('target_type', 'taxonomy_term')->setSetting('handler', 'default')->setRevisionable(TRUE);
-    
+
     // // 3
     $fields['type_color_theme'] = BaseFieldDefinition::create('boolean')->setLabel(t(" How would you like to define the colors? "))->setDisplayOptions('form', [
       'type' => 'options_buttons',
       'weight' => -3,
       'settings' => []
     ])->setDisplayOptions('view', [])->setDisplayConfigurable('view', TRUE)->setDisplayConfigurable('form', true)->setSetting('on_label', t("Select colors"))->setSetting('off_label', t('Select a color theme'));
-    
+
     // 3.1
     $fields['color_primary'] = BaseFieldDefinition::create('color_theme_field_type')->setLabel(t(' Primary color '))->setRequired(TRUE)->setDefaultValue([
       'color' => '#CE3B3B',
@@ -425,7 +423,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'settings' => [],
       'weight' => -3
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setTranslatable(true);
-    
+
     // 4 choix du model de la page d'acceuil.
     $fields['type_home_page'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(" Choose your homepage design "))->setRevisionable(TRUE)->setSetting('target_type', 'site_type_datas')->setSetting('handler', 'default')->setDisplayOptions('view', [
       'label' => 'hidden',
@@ -436,7 +434,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'weight' => 5,
       'settings' => []
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDescription(t(" The theme colors will be updated during the creation of your model, you could always modify them. "));
-    
+
     // 5 Choix des pages que lon souhaite avoir.
     $fields['pages'] = BaseFieldDefinition::create('list_string')->setLabel(t(" Please select the pages "))->setRequired(TRUE)->setSetting('allowed_values_function', [
       '\Drupal\lesroidelareno\LesroidelarenoFormDonneeSite',
@@ -448,20 +446,20 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'settings' => [],
       'weight' => -3
     ])->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setCardinality(-1);
-    
+
     // 6 Avez vous du contenus.
     $fields['status']->setDescription(t(" A boolean indicating whether the Donnee site internet des utilisateurs is published. "))->setDisplayOptions('form', [
       'type' => 'boolean_checkbox',
       'weight' => -3
     ]);
-    
+
     // 7
     $fields['has_contents'] = BaseFieldDefinition::create('boolean')->setLabel(t(" Do you have content for your different pages? "))->setRequired(true)->setDisplayOptions('form', [
       'type' => 'options_buttons',
       'weight' => -3
     ])->setDisplayOptions('view', [])->setDisplayConfigurable('view', TRUE)->setDisplayConfigurable('form', true)->setSetting('on_label', "Oui")->setSetting('off_label', 'Non')->setDescription(t("
      Si vous n'avez pas de contenu, nous pouvons vous accompagnez dans sa redaction. "));
-    
+
     // 7.1 => l'utilisateur a du contenu.
     $fields['image_logo'] = BaseFieldDefinition::create('image')->setLabel(t("Please insert company logo"))->setRequired(false)->setDisplayConfigurable('form', [
       'type' => 'image'
@@ -478,7 +476,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'type' => 'text_default',
       'weight' => 0
     ])->setTranslatable(TRUE);
-    
+
     //
     $fields['contenus_transferer'] = BaseFieldDefinition::create('file')->setLabel(t("Add pictures"))->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setRequired(false)->setSettings([
       'target_type' => 'file',
@@ -499,7 +497,7 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'alt' => '',
       'title' => ''
     ])->setCardinality(-1);
-    
+
     //
     $fields['contenus_transferer_txt'] = BaseFieldDefinition::create('file')->setLabel(t('Add texts'))->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setRequired(false)->setSettings([
       'target_type' => 'file',
@@ -520,14 +518,14 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       'alt' => '',
       'title' => ''
     ])->setCardinality(-1);
-    
+
     // 8
     $fields['demande_traitement'] = BaseFieldDefinition::create('boolean')->setLabel(t('Are your data complete?'))->setDisplayOptions('form', [
       'type' => 'options_buttons',
       'weight' => -3
     ])->setDisplayOptions('view', [])->setDisplayConfigurable('view', TRUE)->setDisplayConfigurable('form', true)->setSetting('on_label', "Oui")->setSetting('off_label', 'Non
     ')->setDescription(t("NB: we will start building your site if you have selected 'yes'. "));
-    
+
     // 9
     $fields['traitement_encours'] = BaseFieldDefinition::create('list_string')->setLabel(t("Construction in progress ..."))->setDisplayOptions('form', [
       'type' => 'options_buttons',
@@ -536,12 +534,11 @@ class DonneeSiteInternetEntity extends EditorialContentEntityBase implements Don
       '\Drupal\lesroidelareno\LesroidelarenoFormDonneeSite',
       'StatusTraitement'
     ]);
-    
+
     $fields['created'] = BaseFieldDefinition::create('created')->setLabel(t('Created'))->setDescription(t(' The time that the entity was created. '));
-    
+
     $fields['changed'] = BaseFieldDefinition::create('changed')->setLabel(t('Changed'))->setDescription(t(' The time that the entity was last edited. '));
-    
+
     return $fields;
   }
-  
 }
