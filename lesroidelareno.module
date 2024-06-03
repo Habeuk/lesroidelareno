@@ -722,7 +722,11 @@ function lesroidelareno_entity_field_access($operation, FieldDefinitionInterface
  * @param \Drupal\mysql\Driver\Database\mysql\Select $query
  */
 function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterface $query) {
-  if ($query instanceof \Drupal\mysql\Driver\Database\mysql\Select) {
+  /**
+   * The tag "unhandle_pass is added on queries that doesn't need this filter. ex: the queries used for domain
+   * delatation
+   */
+  if (($query instanceof \Drupal\mysql\Driver\Database\mysql\Select) && !$query->hasTag("unhandle_pass")) {
     /**
      *
      * @var \Drupal\mysql\Driver\Database\mysql\Select $query
@@ -791,11 +795,10 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     } elseif ($query->hasTag('entity_query_commerce_shipment')) {
     } elseif ($query->hasTag('entity_query_profile')) {
     } elseif ($query->hasTag('entity_query_taxonomy_term')) {
-      $query->addJoin('INNER', 'taxonomy_term_field_data', 'tdata', 'tdata.tid=base_table.tid');
-      $query->addJoin('LEFT', 'taxonomy_term__field_domain_access', 'tda', 'tda.entity_id=base_table.tid');
-
       $route_name = explode('.', \Drupal::service('current_route_match')->getRouteName());
       if (!in_array('taxonomy_vocabulary', $route_name)) {
+        $query->addJoin('INNER', 'taxonomy_term_field_data', 'tdata', 'tdata.tid=base_table.tid');
+        $query->addJoin('LEFT', 'taxonomy_term__field_domain_access', 'tda', 'tda.entity_id=base_table.tid');
         $orConditions = $query->orConditionGroup()
           ->condition('tdata.is_public', TRUE)
           ->condition('tda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
@@ -821,7 +824,11 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     } elseif ($query->hasTag('entity_query_model_cv')) {
     } elseif ($query->hasTag('entity_query_commerce_store')) {
     } elseif ($query->hasTag('entity_query_commerce_payment_method')) {
-      $query->condition('commerce_payment_method.field_domain_source', lesroidelareno::getCurrentDomainId());
+      //Solution temporaire à revérifier
+      if (!isset($query->getTables()["commerce_payment_method__field_domain_access"])) {
+        $query->addJoin('LEFT', 'commerce_payment_method__field_domain_access', 'payment_da', 'payment_da.entity_id=base_table.method_id');
+        $query->condition('payment_da.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+      }
     }
     /**
      * Filtre sur l'entité : files_style
@@ -855,6 +862,13 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     } elseif ($query->hasTag('entity_query_booking_reservation')) {
     } elseif ($query->hasTag('user_load_multiple')) {
     } elseif ($query->hasTag('entity_query_node')) {
+    } elseif ($query->hasTag('entity_query_commerce_shipping_method')) {
+      $route_name = \Drupal::service('current_route_match')->getRouteName();
+      if ($route_name === "commerce_checkout.form") {
+        $query->addJoin('INNER', 'commerce_shipping_method_field_data', 'ship_data', 'ship_data.shipping_method_id=base_table.shipping_method_id');
+        $query->addJoin('LEFT', 'commerce_shipping_method__field_domain_access', 'ship_da', 'ship_da.entity_id=base_table.shipping_method_id');
+        $query->condition('ship_da.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+      }
     } else {
       // dump($query);
       // \Stephane888\Debug\debugLog::kintDebugDrupal($query,
@@ -960,6 +974,7 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         $query->addJoin('INNER', 'commerce_payment_method__field_domain_access', 'fda', 'fda.entity_id=base_table.method_id');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
+        $query->addTag("unhandle_pass");
         break;
       case 'commerce_order':
         $query->addJoin('INNER', 'commerce_order__field_domain_access', 'fda', 'fda.entity_id=base_table.order_id');
@@ -984,6 +999,8 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
       case 'user':
       case 'file':
       case 'commerce_product_variation':
+      case 'commerce_shipping_method':
+      case 'profile':
         // car ils dependent du produit et le
         // produit est deja filtrer.
 

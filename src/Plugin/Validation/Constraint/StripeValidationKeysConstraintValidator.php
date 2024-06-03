@@ -24,6 +24,7 @@ class StripeValidationKeysConstraintValidator extends ConstraintValidator {
     try {
       /** @var CommercePaymentConfig $entity */
       if (!empty($entity->get('secret_key')->value)) {
+        
         $expected_livemode = $entity->getMode() == 'live' ? TRUE : FALSE;
         $secret_key = $entity->getSecretKey();
         StripeLibrary::setApiKey($secret_key);
