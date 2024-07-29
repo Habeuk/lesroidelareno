@@ -13,26 +13,26 @@ use Drupal\lesroidelareno\lesroidelareno;
  * Defines a local action plugin with a dynamic title.
  */
 class AddItemMenu extends MenuLinkAdd {
-  
+
   public function getRouteName() {
     // return $this->pluginDefinition['route_name'];
-    return "lesroidelareno.manage_menu.add";
+    return "entity.menu.add_link_form";
   }
-  
+
   public function getOptions(RouteMatchInterface $route_match) {
     $options = parent::getOptions($route_match);
     return $options;
   }
-  
+
   public function getRouteParameters(RouteMatchInterface $route_match) {
     $parameters = parent::getRouteParameters($route_match);
     $key = "third_party_settings.lesroidelareno.domain_id";
     $ids = lesroidelareno::retriveDataByKey($key);
     $parameters['menu'] = $ids ? reset($ids) : '';
-    
+
     return $parameters;
   }
-  
+
   // public function getTitle(){
   // /
   // }
