@@ -114,6 +114,15 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
         $entity->set('field_domain_access', lesroidelareno::getCurrentDomainId());
       }
     }
+    /**
+     * Pour les webforms, il faut remplir le champs 'webform_domain_access'.
+     */
+    elseif ($entity_id == 'webform') {
+      $domain_sting = $entity->getThirdPartySetting('webform_domain_access', DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD);
+      if (empty($domain_sting)) {
+        $entity->setThirdPartySetting('webform_domain_access', DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD, lesroidelareno::getCurrentDomainId());
+      }
+    }
     else {
       if (!$isAdministrator) {
         /**
@@ -198,9 +207,11 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
      * Afin de ressoudre le probleme d'identification du proprietaire d'un
      * paragraphe, on ajoute un champs wbh_user_id.
      */
-    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragraph entity.'))->setDisplayOptions('form', [ //
-    ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
-    ])->setDescription("Idealement on doit pouvoir identifier le paragraph à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
+    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragraph entity.'))->setDisplayOptions(
+      'form', [ //
+      ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
+    ])->setDescription("Idealement on doit pouvoir identifier le paragraph à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback(
+      '\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
   }
   elseif ($entity_type->id() == 'dis_period_entity') {
     __add_fields_domain($fields);
@@ -217,9 +228,11 @@ function lesroidelareno_entity_base_field_info(EntityTypeInterface $entity_type)
   elseif ($entity_type->id() == 'menu_link_content' || $entity_type->id() == 'block_content') {
     // on ajoute un champs pour identifier l'auteur du menu.
     // ( ca champs doit etre desactiver à l'avichage par defaut ).
-    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setDisplayOptions('form', [ //
-    ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
-    ])->setDescription("Idealement on doit pouvoir identifier l'auteur d'un element de menu à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
+    $fields['wbh_user_id'] = BaseFieldDefinition::create('entity_reference')->setLabel(t(' Auteur (wbh)'))->setDescription(t('The user ID of author of the paragrph entity.'))->setDisplayOptions(
+      'form', [ //
+      ])->setRevisionable(TRUE)->setSetting('target_type', 'user')->setSetting('handler', 'default')->setDisplayOptions('view', [ //
+    ])->setDescription("Idealement on doit pouvoir identifier l'auteur d'un element de menu à partir de l'entité parente.")->setDisplayConfigurable('form', true)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback(
+      '\Drupal\lesroidelareno\lesroidelareno::getCurrentUserId');
   }
   
   return $fields;
@@ -235,13 +248,15 @@ function __add_fields_domain(array &$fields) {
   $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
   $field_source = \Drupal\domain_source\DomainSourceElementManagerInterface::DOMAIN_SOURCE_FIELD;
   //
-  $fields[$field_access] = BaseFieldDefinition::create('entity_reference')->setLabel(t("Domain access"))->setTranslatable(false)->setDisplayOptions('form', [
-    'type' => 'select2_entity_reference',
-    'weight' => 40,
-    'settings' => [
-      'autocomplete' => true
-    ]
-  ])->setSetting('handler', 'default')->setSetting('target_type', 'domain')->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback('\Drupal\creation_site_virtuel\CreationSiteVirtuel::getActiveDomain');
+  $fields[$field_access] = BaseFieldDefinition::create('entity_reference')->setLabel(t("Domain access"))->setTranslatable(false)->setDisplayOptions('form',
+    [
+      'type' => 'select2_entity_reference',
+      'weight' => 40,
+      'settings' => [
+        'autocomplete' => true
+      ]
+    ])->setSetting('handler', 'default')->setSetting('target_type', 'domain')->setDisplayConfigurable('form', TRUE)->setDisplayConfigurable('view', TRUE)->setDefaultValueCallback(
+    '\Drupal\creation_site_virtuel\CreationSiteVirtuel::getActiveDomain');
   //
   $fields[$field_source] = BaseFieldDefinition::create('entity_reference')->setLabel(t("Domain source"))->setDisplayOptions('form', [
     'type' => 'options_select',

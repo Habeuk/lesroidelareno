@@ -62,5 +62,4 @@ class WebformAccess extends WebformEntityAccessControlHandler {
     // on bloque au cas contraire.
     return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
   }
-  
 }
