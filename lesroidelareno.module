@@ -25,6 +25,7 @@ use Drupal\lesroidelareno\HandlerClass\MenuLinkContentAccess;
 use Drupal\lesroidelareno\HandlerClass\Menu;
 use Drupal\lesroidelareno\HandlerClass\BookingConfigAccess;
 use Drupal\lesroidelareno\HandlerClass\Block;
+use Drupal\lesroidelareno\HandlerClass\ListBuilderParagraph;
 use Drupal\domain_source\DomainSourceElementManagerInterface;
 use Drupal\domain_access\DomainAccessManagerInterface;
 use Drupal\lesroidelareno\lesroidelareno;
@@ -181,6 +182,7 @@ function lesroidelareno_entity_type_alter(array &$entity_types) {
   $entity_types['node']->setHandlerClass('access', NodeAccess::class);
   $entity_types['block_content']->setHandlerClass('access', BlockContentAccess::class);
   $entity_types['paragraph']->setHandlerClass('access', ParagraphAccess::class);
+  $entity_types['paragraph']->setListBuilderClass(ListBuilderParagraph::class);
   $entity_types['commerce_product']->setHandlerClass('access', CommerceProductAccess::class);
   $entity_types['config_theme_entity']->setHandlerClass('access', configThemeAccess::class);
   $entity_types['site_internet_entity']->setHandlerClass('access', SiteInternetAccess::class);

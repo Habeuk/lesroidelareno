@@ -125,10 +125,19 @@ lesroidelareno.manage_menu.add:
     
     
 lesroidelareno.manage_paragraphs:
-  path: '/lesroidelareno/manage-paragraphs'
+  path: '/admin/lesroidelareno/manage-paragraphs'
   defaults:
     _title: 'Manage Paragraphs'
     _controller: '\Drupal\lesroidelareno\Controller\ManageParagraphs'
+  requirements:
+    _permission: 'access content'
+    _role: 'gerant_de_site_web+administrator'
+
+lesroidelareno.manage_paragraphs.delete:
+  path: '/admin/lesroidelareno/manage-paragraphs/delete/{paragraph}'
+  defaults:
+    _title: 'Manage Paragraphs'
+    _controller: '\Drupal\lesroidelareno\Controller\ManageParagraphs::DeleteParagraph'
   requirements:
     _permission: 'access content'
     _role: 'gerant_de_site_web+administrator'
