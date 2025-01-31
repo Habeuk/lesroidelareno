@@ -133,11 +133,20 @@ lesroidelareno.manage_paragraphs:
     _permission: 'access content'
     _role: 'gerant_de_site_web+administrator'
 
-lesroidelareno.manage_paragraphs.delete:
-  path: '/admin/lesroidelareno/manage-paragraphs/delete/{paragraph}'
+lesroidelareno.manage_paragraphs.predelete:
+  path: '/admin/lesroidelareno/manage-paragraphs/pre-delete/{paragraph}'
+  defaults:
+    _title: 'Manage Paragraphs'
+    _controller: '\Drupal\lesroidelareno\Controller\ManageParagraphs::PreParagraph'
+  requirements:
+    _permission: 'access content'
+    _role: 'gerant_de_site_web+administrator'
+
+lesroidelareno.manage_paragraphs.confirmdelete:
+  path: '/admin/lesroidelareno/manage-paragraphs/confirm-delete/{paragraph}'
   defaults:
     _title: 'Manage Paragraphs'
     _controller: '\Drupal\lesroidelareno\Controller\ManageParagraphs::DeleteParagraph'
   requirements:
     _permission: 'access content'
-    _role: 'gerant_de_site_web+administrator'
+    _role: 'gerant_de_site_web+administrator'	

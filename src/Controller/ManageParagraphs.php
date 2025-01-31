@@ -6,17 +6,65 @@ namespace Drupal\lesroidelareno\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\lesroidelareno\lesroidelareno;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Returns responses for lesroidelareno routes.
  */
 final class ManageParagraphs extends ControllerBase {
   
-  public function DeleteParagraph($paragraph) {
+  public function PreParagraph(Request $request, $paragraph) {
     if (lesroidelareno::isAdministrator()) {
       $entity = $this->entityTypeManager()->getStorage('paragraph')->load($paragraph);
       if ($entity) {
-        $this->messenger()->addStatus("La paragraph " . $entity->id() . " a été supprimer ");
+        $this->messenger()->addStatus("validé La supression du paragraph " . $entity->id() . " ? ");
+        $query = [
+          'query' => [
+            'destination' => $request->get('destination')
+          ]
+        ];
+        $delete_url = \Drupal\Core\Url::fromRoute('lesroidelareno.manage_paragraphs.confirmdelete', [
+          'paragraph' => $entity->id()
+        ], $query);
+        $build['my_custom_link'] = [
+          [
+            '#type' => 'html_tag',
+            '#tag' => 'h3',
+            '#value' => $entity->label()
+          ],
+          [
+            '#type' => 'html_tag',
+            '#tag' => 'p',
+            '#value' => 'type : ' . $entity->bundle()
+          ],
+          [
+            '#type' => 'link',
+            '#title' => 'Supprimer, cette action est irreversible',
+            '#url' => $delete_url,
+            '#attributes' => [
+              'class' => [
+                'button',
+                'button--danger'
+              ]
+            ]
+          ]
+        ];
+        return $build;
+      }
+      else
+        $this->messenger()->addWarning("La paragraph " . $entity->id() . " n'existe plus ");
+    }
+    return [];
+  }
+  
+  public function DeleteParagraph(Request $request, $paragraph) {
+    if (lesroidelareno::isAdministrator()) {
+      $entity = $this->entityTypeManager()->getStorage('paragraph')->load($paragraph);
+      if ($entity) {
+        $this->messenger()->addStatus("Le paragraph " . $entity->id() . " a été supprimer ");
+        $entity->delete();
+        $status = 302;
+        return new RedirectResponse($request->get('destination'), $status);
       }
       else
         $this->messenger()->addWarning("La paragraph " . $entity->id() . " n'existe plus ");

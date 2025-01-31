@@ -27,6 +27,15 @@ class ListBuilderParagraph extends EntityListBuilder {
    * @var QueryInterface
    */
   protected $customQuery;
+  /**
+   *
+   * @var \Symfony\Component\HttpFoundation\Request
+   */
+  protected $requestStack;
+  /**
+   * --
+   */
+  protected $current_path;
   
   /**
    *
@@ -90,14 +99,29 @@ class ListBuilderParagraph extends EntityListBuilder {
    */
   protected function getDefaultOperations(EntityInterface $entity) {
     $operations = [];
+    
     $voir_url = Url::fromRoute('entity.paragraph.canonical', [
       'paragraph' => $entity->id()
     ]);
+    $query = [
+      'query' => [
+        'destination' => $this->getCurrentUri()
+      ]
+    ];
     $operations['voir'] = [
       'title' => 'voir',
-      'weight' => 10,
+      'weight' => -10,
       'url' => $voir_url
     ];
+    $delete_url = Url::fromRoute('lesroidelareno.manage_paragraphs.predelete', [
+      'paragraph' => $entity->id()
+    ], $query);
+    $operations['delete'] = [
+      'title' => 'delete (Attention)',
+      'weight' => 30,
+      'url' => $delete_url
+    ];
+    
     return $operations + parent::getDefaultOperations($entity);
   }
   
@@ -134,5 +158,23 @@ class ListBuilderParagraph extends EntityListBuilder {
       $this->customQuery = parent::getEntityListQuery();
     }
     return $this->customQuery;
+  }
+  
+  /**
+   * Gets the request object.
+   *
+   * @return \Symfony\Component\HttpFoundation\Request The request object.
+   */
+  protected function getRequest() {
+    if (!$this->requestStack) {
+      $this->requestStack = \Drupal::service('request_stack');
+    }
+    return $this->requestStack->getCurrentRequest();
+  }
+  
+  protected function getCurrentUri() {
+    if (!$this->current_path)
+      $this->current_path = $this->getRequest()->getRequestUri();
+    return $this->current_path;
   }
 }
