@@ -81,6 +81,7 @@ class ListBuilderParagraph extends EntityListBuilder {
   public function render() {
     $build['table'] = parent::render();
     $query = $this->getEntityListQuery();
+    $query->pager(0, NULL);
     $total = $query->count()->execute();
     $build['summary']['#markup'] = $this->t('Total paragraphs: @total', [
       '@total' => $total

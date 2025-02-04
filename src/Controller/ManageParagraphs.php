@@ -84,6 +84,11 @@ final class ManageParagraphs extends ControllerBase {
     $contain_domaine = $request->query->get("contain");
     $type_paragraph = $request->query->get("type_paragraph");
     $limit = $request->query->get("limit");
+    if ($limit) {
+      $limit = (int) $limit;
+      if ($limit > 0)
+        $ListBuilderParagraph->setLimit($limit);
+    }
     /**
      *
      * @var \Drupal\Core\Entity\Query\QueryInterface $customQuery
@@ -94,11 +99,6 @@ final class ManageParagraphs extends ControllerBase {
     
     if ($type_paragraph)
       $customQuery->condition('type', trim($type_paragraph));
-    if ($limit) {
-      $limit = (int) $limit;
-      if ($limit > 0)
-        $ListBuilderParagraph->setLimit($limit);
-    }
     
     return [
       "filter" => $this->formBuilder()->getForm("Drupal\lesroidelareno\Form\FilterForm"),
