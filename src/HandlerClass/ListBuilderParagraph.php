@@ -81,7 +81,12 @@ class ListBuilderParagraph extends EntityListBuilder {
       'utilisation' => $this->countUtilisation($entity),
       'field_domain_access' => $domains
     ];
-    return $row + parent::buildRow($entity);
+    $row2 = parent::buildRow($entity);
+    if (!empty($row['utilisation'])) {
+      if (!empty($row2['operations']['data']['#links']['delete']))
+        unset($row2['operations']['data']['#links']['delete']);
+    }
+    return $row + $row2;
   }
   
   /**
@@ -106,7 +111,8 @@ class ListBuilderParagraph extends EntityListBuilder {
       'hbk_collection',
       'site_internet_entity',
       'site_type_datas',
-      'block_content'
+      'block_content',
+      'paragraph'
     ];
     $links = [];
     foreach ($entitiesKeepParagraphs as $entity_id) {
@@ -139,6 +145,23 @@ class ListBuilderParagraph extends EntityListBuilder {
             ];
         }
       }
+    }
+    // On verifie dans le paragraphe.
+    $queryBlock = \Drupal::entityTypeManager()->getStorage('block')->getQuery();
+    $queryBlock->condition('settings.entity', $paragraph_id);
+    $resultBlock = $queryBlock->execute();
+    //
+    if (!empty($resultBlock)) {
+      $id = reset($resultBlock);
+      /**
+       *
+       * @var \Drupal\block\Entity\Block $block
+       */
+      $block = \Drupal::entityTypeManager()->getStorage('block')->load($id);
+      $links[] = [
+        'title' => Markup::create(' Block | ' . $block->id() . ' | ' . $block->label()),
+        'url' => $block->toUrl()
+      ];
     }
     if ($links) {
       return [
