@@ -25,6 +25,21 @@ class WebformAccess extends WebformEntityAccessControlHandler {
    * @see \Drupal\blockscontent\BlocksContentsAccessControlHandler::checkAccess()
    */
   public function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
+    /**
+     * On definie un access full, au formulire afin de pouvoir supprimer les
+     * sousmissions.
+     *
+     * @var \Drupal\webform\Entity\Webform $entity
+     */
+    if (\Drupal::currentUser()->id() == 1) {
+      // $webform_users =
+      // \Drupal\manage_module_config\ManageModuleConfig::getFormWebformByUser();
+      // if (!empty($webform_users[$entity->id()])) {
+      return parent::checkAccess($entity, $operation, $account);
+      // }
+    }
+    
+    //
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
     $field_domain_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
