@@ -473,7 +473,7 @@ function lesroidelareno_preprocess_html(&$vars) {
   $routeName = \Drupal::routeMatch()->getRouteName();
   // dump($routeName);
   //
-  if (!str_contains($routeName, 'system.admin')) {
+  if (!str_contains($routeName, 'system.admin') && !str_contains($_SERVER['SERVER_NAME'], 'kksa')) {
     $vars['page']['#attached']['library'][] = 'lesroidelareno/lesroidelareno_tawk.config';
   }
   // On ajoute la class 'container' sur tous les pages de termes taxo.
@@ -554,6 +554,24 @@ function lesroidelareno_preprocess_facets_result_item__checkbox(&$vars) {
     }
   }
 }
+
+/**
+ * Implement hook_preprocess_page
+ */
+// function lesroidelareno_preprocess_page(&$variables) {
+// $route_name = \Drupal::routeMatch()->getRouteName();
+// $webform = \Drupal::routeMatch()->getParameter('webform');
+// if ($webform) {
+// $domain_sting = $webform->getThirdPartySetting('webform_domain_access',
+// DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD);
+// // dump($domain_sting);
+// if (empty($domain_sting)) {
+// $webform->setThirdPartySetting('webform_domain_access',
+// DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD,
+// lesroidelareno::getCurrentDomainId());
+// }
+// }
+// }
 
 /**
  * Cette function est provisoir, elle corrige un bug au niveau de 'target_id';
