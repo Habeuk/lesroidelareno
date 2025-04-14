@@ -32,11 +32,8 @@ class WebformAccess extends WebformEntityAccessControlHandler {
      * @var \Drupal\webform\Entity\Webform $entity
      */
     if (\Drupal::currentUser()->id() == 1) {
-      // $webform_users =
-      // \Drupal\manage_module_config\ManageModuleConfig::getFormWebformByUser();
-      // if (!empty($webform_users[$entity->id()])) {
+      // dump($operation, $entity->id());
       return parent::checkAccess($entity, $operation, $account);
-      // }
     }
     
     //
@@ -52,6 +49,7 @@ class WebformAccess extends WebformEntityAccessControlHandler {
       // Tout le monde peut voir les contenus publiées.
       case 'view':
       case 'submission_create':
+      case 'submission_page':
         if ($isAdministrator)
           return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         // On empeche l'acces au données appartenant à un autre domaine.
@@ -64,6 +62,10 @@ class WebformAccess extends WebformEntityAccessControlHandler {
       // On met à jour si l'utilisateur est autheur ou s'il est administrateur.
       case 'update':
       case 'delete':
+      case 'submission_view_any':
+      case 'submission_update_any':
+      case 'submission_delete_any':
+      case 'submission_purge_any':
         if ($isAdministrator)
           return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         // On empeche l'acces au données appartenant à un autre domaine.
