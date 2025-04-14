@@ -51,6 +51,7 @@ class WebformAccess extends WebformEntityAccessControlHandler {
     switch ($operation) {
       // Tout le monde peut voir les contenus publiées.
       case 'view':
+      case 'submission_create':
         if ($isAdministrator)
           return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         // On empeche l'acces au données appartenant à un autre domaine.
@@ -75,6 +76,7 @@ class WebformAccess extends WebformEntityAccessControlHandler {
         break;
     }
     // on bloque au cas contraire.
+    
     return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
   }
 }
