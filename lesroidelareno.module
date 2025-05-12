@@ -768,6 +768,7 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
      * @var array $tables
      */
     $tables = $query->getTables();
+    
     /**
      * On filtre toutes requetes utilisant la table
      * 'commerce_promotion_field_data'.
@@ -810,7 +811,22 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
      * derniers.
      * Le but principal est de limité les contenus au domaine.
      */
+    // on doit securisé l'acces au paragraphe, car ils peuvent etre charger par
+    // different mecanimes.
+    // NB: peut etre contourner en passant par les revisions.
     elseif ($query->hasTag('entity_query_paragraph')) {
+      if (empty($tables['paragraph__field_domain_access']) && !empty($tables['base_table']['table']) && $tables['base_table']['table'] == 'paragraphs_item') {
+        $query->addJoin('INNER', 'paragraph__field_domain_access', 'paragraph__field_domain_access', 'paragraph__field_domain_access.entity_id=base_table.id');
+        $query->addField('paragraph__field_domain_access', 'field_domain_access_target_id');
+        $query->condition('paragraph__field_domain_access.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+      }
+    }
+    elseif ($query->hasTag('paragraph_load_multiple')) {
+      if (empty($tables['paragraph__field_domain_access']) && !empty($tables['base_table']['table']) && $tables['base_table']['table'] == 'paragraphs_item') {
+        $query->addJoin('INNER', 'paragraph__field_domain_access', 'paragraph__field_domain_access', 'paragraph__field_domain_access.entity_id=base_table.id');
+        $query->addField('paragraph__field_domain_access', 'field_domain_access_target_id');
+        $query->condition('paragraph__field_domain_access.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
+      }
     }
     elseif ($query->hasTag('entity_query_config_theme_entity')) {
     }
@@ -1004,11 +1020,15 @@ function lesroidelareno_query_entity_reference_alter(\Drupal\Core\Database\Query
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
         $query->addField('fda', 'field_domain_access_target_id');
         break;
-      case 'paragraph':
-        $query->addJoin('INNER', 'paragraph__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
-        $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());
-        $query->addField('fda', 'field_domain_access_target_id');
-        break; //
+      // On masque les paragraphes à ce niveau, pour y acceder uniquement à
+      // partir de la function au dessus.
+      // case 'paragraph':
+      // $query->addJoin('INNER', 'paragraph__field_domain_access', 'fda',
+      // 'fda.entity_id=base_table.id');
+      // $query->condition('fda.field_domain_access_target_id',
+      // lesroidelareno::getCurrentDomainId());
+      // $query->addField('fda', 'field_domain_access_target_id');
+      // break; //
       case 'model_cv':
         $query->addJoin('INNER', 'model_cv__field_domain_access', 'fda', 'fda.entity_id=base_table.id');
         $query->condition('fda.field_domain_access_target_id', lesroidelareno::getCurrentDomainId());

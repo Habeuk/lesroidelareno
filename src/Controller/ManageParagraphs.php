@@ -99,7 +99,10 @@ final class ManageParagraphs extends ControllerBase {
     
     if ($type_paragraph)
       $customQuery->condition('type', trim($type_paragraph));
+    // On ajoute le tag pour ignorer les filtres.
+    $customQuery->addTag(\Drupal\wb_optimisation\Service\OptimisationHandler::getQueryTag());
     
+    //
     return [
       "filter" => $this->formBuilder()->getForm("Drupal\lesroidelareno\Form\FilterForm"),
       "collection" => $ListBuilderParagraph->render()
