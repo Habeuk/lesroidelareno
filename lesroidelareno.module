@@ -167,6 +167,115 @@ function lesroidelareno_layoutgenentitystyles_presave_alter_status($status, Enti
   }
 }
 
+function layoutgenentitystyles_styles_storage(array &$storages, $domaine_id = null) {
+  if (empty($domaine_id))
+    $domaine_id = Lesroidelareno::getCurrentDomainId();
+  $sectionStorages = [];
+  dd($sectionStorages);
+  $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
+  $field_all_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_ALL_FIELD;
+  $connection = \Drupal::database();
+  
+  foreach ($storages as $key => $value) {
+    // La clee ($key) est composer de 3 elements.
+    [
+      $entity_type_id,
+      $entity_id,
+      $view_mode
+    ] = explode(".", $key);
+    
+    /**
+     *
+     * @var \Drupal\Core\Entity\Sql\SqlContentEntityStorage $entity_type
+     */
+    $entity_type = \Drupal::entityTypeManager()->getStorage($entity_type_id);
+    
+    if ($entity_type->hasData()) {
+      
+      // On cree une instance de la donnée afin de verifier si ce
+      // dernier contient un des champs valide.
+      // Cette logique de differentiation n'est pas l'ideale, on devrait
+      // pouvoir determiner si l'entite dispose d'un bundle ou pas.
+      // if ($entity_type_id != $entity_id) {
+      $bundle_key = $entity_type->getEntityType()->getBundleEntityType();
+      if ($bundle_key) {
+        
+        /**
+         *
+         * @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay $value
+         */
+        $bundle_key = $entity_type->getEntityType()->getKey('bundle');
+        
+        $entity = $entity_type->create([
+          $bundle_key => $entity_id
+        ]);
+        
+        if ($entity->hasField($field_access)) {
+          
+          // On verifie si on a au moins une donnée valide.
+          // On ne peut pas utilisé les entitées pour node, car le
+          // module domain affectue un filtrage.
+          if (str_contains($key, "node.")) {
+            $query = $connection->select('node_field_data', 'nd');
+            $query->addField('nd', 'nid');
+            // $query->condition('nd.status', 1);
+            $query->condition('nd.type', $entity_id);
+            $query->addJoin('INNER', 'node__field_domain_access', 'fda', 'fda.entity_id=nd.nid');
+            $query->condition('fda.field_domain_access_target_id', $domaine_id);
+            $results = $query->execute()->fetchAll(\PDO::ATTR_ERRMODE);
+            if (!empty($results)) {
+              $sectionStorages[$key] = $value;
+            }
+          }
+          else {
+            $ids = $entity_type->getQuery()->condition($field_access, $domaine_id)->condition($bundle_key, $entity_id)->accessCheck(false)->execute();
+            if ($ids)
+              $sectionStorages[$key] = $value;
+            elseif ($entity->hasField($field_all_access)) {
+              $ids = $entity_type->getQuery()->condition($field_all_access, true)->condition($bundle_key, $entity_id)->accessCheck(false)->execute();
+              if ($ids) {
+                $sectionStorages[$key] = $value;
+                // dump($entity_id);
+              }
+            }
+          }
+        } // S'il n'a pas de champs de filtre alors son affichage doit,
+          // etre disponible pour tous les domaines.
+        else {
+          $sectionStorages[$key] = $value;
+        }
+      }
+      else {
+        
+        $values = [];
+        // le type d'entité comment necessite un bundle.
+        if ($entity_id == 'comment') {
+          $values['comment_type'] = 'commentaire_de_produit';
+        }
+        $entity = $entity_type->create($values);
+        if ($entity->hasField($field_access)) {
+          // On verifie si on a au moins une donnée valide.
+          $ids = $entity_type->getQuery()->condition($field_access, $domaine_id)->accessCheck(false)->execute();
+          if ($ids)
+            $sectionStorages[$key] = $value;
+          elseif ($entity->hasField($field_all_access)) {
+            $ids = $entity_type->getQuery()->condition($field_all_access, true)->accessCheck(false)->execute();
+            if ($ids) {
+              $sectionStorages[$key] = $value;
+              // dump($entity_id);
+            }
+          }
+        }
+        else {
+          $sectionStorages[$key] = $value;
+          // dump($key);
+        }
+      }
+    }
+  }
+  $storages = $sectionStorages;
+}
+
 /**
  * Cette fonction permet de de controller la maniere donc les contenus vont
  * s'afficher, etre creer, supprimer.

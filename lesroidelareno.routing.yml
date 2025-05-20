@@ -150,3 +150,11 @@ lesroidelareno.manage_paragraphs.confirmdelete:
   requirements:
     _permission: 'access content'
     _role: 'gerant_de_site_web+administrator'	
+    
+lesroidelareno.apigenerate:
+  path: '/layoutgenentitystyles/manuel/api-generate/{hostname}'
+  defaults:
+    _title: 'Add scss import to theme'
+    _controller: '\Drupal\lesroidelareno\Controller\LayoutgenentitystylesController::apiManuelGenerate'
+  requirements:
+    _access: 'TRUE'
