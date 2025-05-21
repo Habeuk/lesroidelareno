@@ -31,6 +31,17 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
    */
   protected $StyleScssPlugin;
   
+  /**
+   * Contient la liste des entites donc on va rechercher s'il possede les
+   * données pour le champs "layout_builder__layout"
+   * Pour le moment on fait uniquement pour l'ent
+   *
+   * @var array
+   */
+  protected $entitiesListLayoutBuilderLayout = [
+    'cv_entity'
+  ];
+  
   function __construct(LayoutgenentitystylesServices $serviceInner, $SectionStorageManager, $LoadStyleFromMod, $ConfigFactory, $ManageFileCustomStyle, $ManageFileMailStyle) {
     $this->serviceInner = $serviceInner;
     $this->domaine_id = $this->setDefaultDomain();
@@ -76,8 +87,8 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
           $bundle_key = $entity_type->getEntityType()->getKey('bundle');
           if ($bundle_key) {
             $field_definitions = $fieldManager->getFieldDefinitions($entity_type_id, $bundle);
-            $has__field_domain_access = (bool) $field_definitions[$field_access] ?? false;
-            $has__field_all_access = (bool) $field_definitions[$field_all_access] ?? false;
+            $has__field_domain_access = (bool) !empty($field_definitions[$field_access]) ?? false;
+            $has__field_all_access = (bool) !empty($field_definitions[$field_all_access]) ?? false;
             if ($has__field_domain_access) {
               $ids = $entity_type->getQuery()->condition($field_access, $this->domaine_id)->condition($bundle_key, $bundle)->accessCheck(false)->execute();
               if ($ids)
@@ -121,22 +132,22 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
     return $this->sectionStorages;
   }
   
-  /**
-   * Permet de generer tous les styles et de les ajouter dans la configuration
-   * du theme actif.
-   */
-  function generateAllFilesStyles() {
-    $this->serviceInner->generateAllFilesStyles();
-    $this->getComponentsOverrides();
-    $this->addStyleFromEntitiesOverride();
-  }
+  // /**
+  // * Permet de generer tous les styles et de les ajouter dans la configuration
+  // * du theme actif.
+  // */
+  // function generateAllFilesStyles() {
+  // $this->serviceInner->generateAllFilesStyles();
+  // // $this->getComponentsOverrides();
+  // $this->addStyleFromEntitiesOverride();
+  // }
   
   /**
    *
    * {@inheritdoc}
-   * @see \Drupal\layoutgenentitystyles\Services\LayoutgenentitystylesServices::getCurrentTheme()
+   * @see \Drupal\layoutgenentitystyles\Services\LayoutgenentitystylesServices::getDefaultTheme()
    */
-  public function getCurrentTheme() {
+  public function getDefaultTheme() {
     if (!$this->domaine_id) {
       $defaultThemeName = \Drupal::config('system.theme')->get('default');
     }
@@ -146,12 +157,14 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
   }
   
   /**
-   * Specifique à wb-horizon.
+   *
+   * @deprecated car cela recherche tous les paragraghs or on connait deja les
+   *             type de paragraphe qui ont un contenu valide.
    */
   protected function getComponentsOverrides() {
-    $fied_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
+    $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
     $query = $this->entityTypeManager()->getStorage('paragraph')->getQuery();
-    $query->condition($fied_access, $this->domaine_id);
+    $query->condition($field_access, $this->domaine_id);
     $ids = $query->accessCheck(TRUE)->execute();
     // dump($ids);
     if ($ids) {
@@ -175,39 +188,42 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
   }
   
   /**
-   * --
+   *
+   * @deprecated, car le module cv doit etre supprimer.
    */
   protected function addStyleFromEntitiesOverride() {
-    $conf = $this->getConfigFOR_generate_style_theme();
-    if ($conf['tab1']['use_domain']) {
-      $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
-      foreach ($this->entitiesListLayoutBuilderLayout as $entity_type_id) {
-        $query = $this->entityTypeManager()->getStorage($entity_type_id)->getQuery();
-        $query->condition('layout_builder__layout', '', '<>');
-        $query->condition($field_access, $this->domaine_id);
-        $results = $query->accessCheck(false)->execute();
-        if (!empty($results)) {
-          $entities = $this->entityTypeManager()->getStorage($entity_type_id)->loadMultiple($results);
-          foreach ($entities as $content) {
-            /**
-             * *
-             *
-             * @var \Drupal\layout_builder\Field\LayoutSectionItemList $LayoutField
-             */
-            $LayoutField = $content->get('layout_builder__layout');
-            $sections = $LayoutField->getSections();
-            $section_storage = $entity_type_id . '.' . $entity_type_id . '.' . $content->id();
-            $this->generateStyleFromSection($sections, $section_storage);
-          }
+    $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
+    foreach ($this->entitiesListLayoutBuilderLayout as $entity_type_id) {
+      $query = $this->entityTypeManager()->getStorage($entity_type_id)->getQuery();
+      $query->condition('layout_builder__layout', '', '<>');
+      $query->condition($field_access, $this->domaine_id);
+      $results = $query->accessCheck(false)->execute();
+      if (!empty($results)) {
+        $entities = $this->entityTypeManager()->getStorage($entity_type_id)->loadMultiple($results);
+        foreach ($entities as $content) {
+          /**
+           * *
+           *
+           * @var \Drupal\layout_builder\Field\LayoutSectionItemList $LayoutField
+           */
+          $LayoutField = $content->get('layout_builder__layout');
+          $sections = $LayoutField->getSections();
+          $section_storage = $entity_type_id . '.' . $entity_type_id . '.' . $content->id();
+          $this->generateStyleFromSection($sections, $section_storage);
         }
       }
     }
   }
   
   /**
+   *
+   *
    * Specifique à wb-horizon.
-   * Permet de recuperer les styles surcharger et de les ajouter en BD afin que
+   * Permet de recuperer les styles surcharger et de les ajouter en
+   * BD afin que
    * le fichier custom.scss puisse etre generer avec du bon contenu.
+   *
+   * @deprecated : ne me semble plus necessaire.
    */
   protected function getOverrideScss($sections) {
     if (\Drupal::moduleHandler()->moduleExists('lesroidelareno')) {

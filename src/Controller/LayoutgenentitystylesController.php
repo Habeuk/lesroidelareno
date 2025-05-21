@@ -55,6 +55,7 @@ class LayoutgenentitystylesController extends ControllerBase {
     $this->LayoutgenentitystylesServices->setDomaineId($hostname);
     $this->LayoutgenentitystylesServices->setShowMessage(false);
     $this->LayoutgenentitystylesServices->generateAllFilesStyles();
+    // dd($this->LayoutgenentitystylesServices->getLibraries());
     return HttpResponse::response($this->LayoutgenentitystylesServices->getLibraries());
   }
 }
