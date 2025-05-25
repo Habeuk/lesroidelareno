@@ -923,6 +923,7 @@ function lesroidelareno_query_alter(\Drupal\Core\Database\Query\AlterableInterfa
     // on doit securisé l'acces au paragraphe, car ils peuvent etre charger par
     // different mecanimes.
     // NB: peut etre contourner en passant par les revisions.
+    // On a pu charger du contenu d'un autre domaine via entityTypeManager.
     elseif ($query->hasTag('entity_query_paragraph')) {
       if (empty($tables['paragraph__field_domain_access']) && !empty($tables['base_table']['table']) && $tables['base_table']['table'] == 'paragraphs_item') {
         $query->addJoin('INNER', 'paragraph__field_domain_access', 'paragraph__field_domain_access', 'paragraph__field_domain_access.entity_id=base_table.id');

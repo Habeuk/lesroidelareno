@@ -44,7 +44,7 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
   
   function __construct(LayoutgenentitystylesServices $serviceInner, $SectionStorageManager, $LoadStyleFromMod, $ConfigFactory, $ManageFileCustomStyle, $ManageFileMailStyle) {
     $this->serviceInner = $serviceInner;
-    $this->domaine_id = $this->setDefaultDomain();
+    $this->setDefaultDomain();
     parent::__construct($SectionStorageManager, $LoadStyleFromMod, $ConfigFactory, $ManageFileCustomStyle, $ManageFileMailStyle);
   }
   
@@ -55,7 +55,14 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
   public function getListSectionStorages() {
     if (!$this->sectionStorages) {
       /**
+       *
+       * @var \Drupal\lesroidelareno\Services\layoutgenentitystyles\OverrideParagraphLoader $paragraph_loader
+       */
+      $paragraph_loader = \Drupal::service('layoutgenentitystyles.paragraph_loader');
+      $paragraph_loader->setDomaineId($this->domaine_id);
+      /**
        * Contient tous les modes d'affichage sans filtre par domaine.
+       * ( au lieu de faire parent::, il faut tout reconstruire ).
        *
        * @var array $sectionStorages
        */
@@ -128,19 +135,36 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
         }
       }
       $this->sectionStorages = $sectionStorages;
+      // on passe par une approche statique pour wb-horizon.
+      if ($this->getDomainId() == 'wb_horizon_com0') {
+        $entitiesAdd = [
+          [
+            'entity_type_id' => 'blocks_contents',
+            'bundle' => 'article_blogs_wbh'
+          ],
+          [
+            'entity_type_id' => 'block_content',
+            'bundle' => 'header'
+          ],
+          [
+            'entity_type_id' => 'block_content',
+            'bundle' => 'footer'
+          ]
+        ];
+        foreach ($entitiesAdd as $entitiyAdd) {
+          $customsectionStorages = $this->entityTypeManager()->getStorage('entity_view_display')->loadByProperties(
+            [
+              'targetEntityType' => $entitiyAdd['entity_type_id'],
+              'bundle' => $entitiyAdd['bundle']
+            ]);
+          $this->sectionStorages += $customsectionStorages;
+        }
+      }
     }
+    //
+    $this->getComponentsOverrides();
     return $this->sectionStorages;
   }
-  
-  // /**
-  // * Permet de generer tous les styles et de les ajouter dans la configuration
-  // * du theme actif.
-  // */
-  // function generateAllFilesStyles() {
-  // $this->serviceInner->generateAllFilesStyles();
-  // // $this->getComponentsOverrides();
-  // $this->addStyleFromEntitiesOverride();
-  // }
   
   /**
    *
@@ -148,39 +172,63 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
    * @see \Drupal\layoutgenentitystyles\Services\LayoutgenentitystylesServices::getDefaultTheme()
    */
   public function getDefaultTheme() {
-    if (!$this->domaine_id) {
-      $defaultThemeName = \Drupal::config('system.theme')->get('default');
+    if ($this->domaine_id) {
+      $defaultThemeName = $this->domaine_id;
     }
     else
-      $defaultThemeName = $this->domaine_id;
+      throw new \ErrorException("Le domaine ne peut etre vide");
     return $defaultThemeName;
   }
   
   /**
-   *
-   * @deprecated car cela recherche tous les paragraghs or on connait deja les
-   *             type de paragraphe qui ont un contenu valide.
+   * Permet de recuperer tous les styles ajouter via l'interface des Scss.js de
+   * layout.
    */
   protected function getComponentsOverrides() {
-    $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
-    $query = $this->entityTypeManager()->getStorage('paragraph')->getQuery();
-    $query->condition($field_access, $this->domaine_id);
-    $ids = $query->accessCheck(TRUE)->execute();
-    // dump($ids);
-    if ($ids) {
-      $entities = $this->entityTypeManager->getStorage('paragraph')->loadMultiple($ids);
-      foreach ($entities as $entity) {
-        if (method_exists($entity, 'hasField')) {
+    // on exclue wb-horizon, car il y'aurra bcp de styles provenant de modele.
+    if ($this->getDomainId() != 'wb_horizon_com') {
+      $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
+      $query = $this->entityTypeManager()->getStorage('paragraph')->getQuery();
+      $query->condition($field_access, $this->getDomainId());
+      $ids = $query->accessCheck(TRUE)->execute();
+      if ($ids) {
+        $entities = $this->entityTypeManager->getStorage('paragraph')->loadMultiple($ids);
+        foreach ($entities as $entity) {
+          // pour les entites de paragraphes surcharger.
           if ($entity->hasField('layout_builder__layout')) {
             
             $sections = [];
             $listSetions = $entity->get('layout_builder__layout')->getValue();
-            $section_storage = $entity->getEntityTypeId() . '.' . $entity->bundle() . '.' . $entity->id();
+            // $section_storage = $entity->getEntityTypeId() . '.' .
+            // $entity->bundle() . '.' . $entity->id();
             foreach ($listSetions as $value) {
               $sections[] = reset($value);
             }
             $this->getOverrideScss($sections);
-            $this->generateStyleFromSection($sections, $section_storage);
+            // Pas necessaire, cela va ajouter plus de styles, Or on a deja
+            // recuperer les styles utiles via d'autres mecanimes.
+            // $this->generateStyleFromSection($sections, $section_storage);
+          }
+          else {
+            $entitiesViews = $this->entityTypeManager()->getStorage('entity_view_display')->loadByProperties([
+              'targetEntityType' => $entity->getEntityTypeId(),
+              'bundle' => $entity->bundle()
+            ]);
+            foreach ($entitiesViews as $entityView) {
+              /**
+               *
+               * @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay
+               */
+              if ($entityView instanceof \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay) {
+                $this->generateSTyleFromEntity($entityView, false);
+                $this->generateStyleFromFieldConfigDisplay($entityView, false);
+                $layout_builder = $this->getSectionsForEntityView($entityView);
+                if (!empty($layout_builder['enabled']) && $layout_builder['sections']) {
+                  $this->getOverrideScss($layout_builder['sections']);
+                }
+              }
+            }
+            $this->getAllStylesFromOverrideEntity($entity);
           }
         }
       }
@@ -215,27 +263,34 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
     }
   }
   
-  /**
-   *
-   *
-   * Specifique à wb-horizon.
-   * Permet de recuperer les styles surcharger et de les ajouter en
-   * BD afin que
-   * le fichier custom.scss puisse etre generer avec du bon contenu.
-   *
-   * @deprecated : ne me semble plus necessaire.
-   */
-  protected function getOverrideScss($sections) {
-    if (\Drupal::moduleHandler()->moduleExists('lesroidelareno')) {
-      // On charge
-      foreach ($sections as $section) {
-        /**
-         *
-         * @var \Drupal\layout_builder\Section $section
-         */
-        $storage = $section->getLayoutSettings();
-        $this->loadPluginScss()->addConfigs($storage);
+  public function getCurrentblock() {
+    $defaultThemeName = $this->getDefaultTheme();
+    $blocks = [];
+    foreach (\Drupal::entityTypeManager()->getStorage('block')->loadByProperties([
+      'theme' => $defaultThemeName,
+      'status' => 1
+    ]) as $key => $block) {
+      $visibility = $block->get('visibility');
+      if (!empty($visibility['domain']['domains']) && !empty($visibility['domain']['domains'][$defaultThemeName])) {
+        $blocks[$key] = $block;
       }
+    }
+    return $blocks;
+  }
+  
+  /**
+   * Lors de la generation d'un site, les styles ajoute au paragraph ne sont pas
+   * creer afin que ce processus soit rapide.
+   * Cette fonction permet d'ajouter ces styles dans la table "files_style".
+   */
+  protected function getOverrideScss(array $sections) {
+    foreach ($sections as $section) {
+      /**
+       *
+       * @var \Drupal\layout_builder\Section $section
+       */
+      $storage = $section->getLayoutSettings();
+      $this->loadPluginScss()->addConfigs($storage);
     }
   }
   
@@ -263,5 +318,11 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
   
   public function setDomaineId($hostname) {
     $this->domaine_id = $hostname;
+  }
+  
+  public function getDomainId() {
+    if (!empty($this->domaine_id))
+      return $this->domaine_id;
+    throw new \ErrorException("Le domaine ne peut etre vide");
   }
 }
