@@ -201,7 +201,6 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
           foreach ($entities as $entity) {
             // pour les entites de paragraphes surcharger.
             if ($entity->hasField('layout_builder__layout')) {
-              
               $sections = [];
               $listSetions = $entity->get('layout_builder__layout')->getValue();
               // $section_storage = $entity->getEntityTypeId() . '.' .
@@ -213,8 +212,29 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
               // Pas necessaire, cela va ajouter plus de styles, Or on a deja
               // recuperer les styles utiles via d'autres mecanimes.
               // $this->generateStyleFromSection($sections, $section_storage);
+              $entitiesViews = $this->entityTypeManager()->getStorage('entity_view_display')->loadByProperties([
+                'targetEntityType' => $entity->getEntityTypeId(),
+                'bundle' => $entity->bundle()
+              ]);
+              foreach ($entitiesViews as $entityView) {
+                /**
+                 *
+                 * @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay
+                 */
+                if ($entityView instanceof \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay) {
+                  $layout_builder = $this->getSectionsForEntityView($entityView);
+                  if (!empty($layout_builder['enabled']) && $layout_builder['sections']) {
+                    $this->getOverrideScss($layout_builder['sections']);
+                  }
+                }
+              }
             }
             else {
+              /**
+               * On doit aussi recuperer les styles de base definit.
+               *
+               * @var array $entitiesViews
+               */
               $entitiesViews = $this->entityTypeManager()->getStorage('entity_view_display')->loadByProperties([
                 'targetEntityType' => $entity->getEntityTypeId(),
                 'bundle' => $entity->bundle()
