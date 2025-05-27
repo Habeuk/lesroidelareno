@@ -188,47 +188,53 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
     // on exclue wb-horizon, car il y'aurra bcp de styles provenant de modele.
     if ($this->getDomainId() != 'wb_horizon_com') {
       $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
-      $query = $this->entityTypeManager()->getStorage('paragraph')->getQuery();
-      $query->condition($field_access, $this->getDomainId());
-      $ids = $query->accessCheck(TRUE)->execute();
-      if ($ids) {
-        $entities = $this->entityTypeManager->getStorage('paragraph')->loadMultiple($ids);
-        foreach ($entities as $entity) {
-          // pour les entites de paragraphes surcharger.
-          if ($entity->hasField('layout_builder__layout')) {
-            
-            $sections = [];
-            $listSetions = $entity->get('layout_builder__layout')->getValue();
-            // $section_storage = $entity->getEntityTypeId() . '.' .
-            // $entity->bundle() . '.' . $entity->id();
-            foreach ($listSetions as $value) {
-              $sections[] = reset($value);
+      $entities_base = [
+        'paragraph',
+        'blocks_contents'
+      ];
+      foreach ($entities_base as $entity_type_id) {
+        $query = $this->entityTypeManager()->getStorage($entity_type_id)->getQuery();
+        $query->condition($field_access, $this->getDomainId());
+        $ids = $query->accessCheck(TRUE)->execute();
+        if ($ids) {
+          $entities = $this->entityTypeManager->getStorage($entity_type_id)->loadMultiple($ids);
+          foreach ($entities as $entity) {
+            // pour les entites de paragraphes surcharger.
+            if ($entity->hasField('layout_builder__layout')) {
+              
+              $sections = [];
+              $listSetions = $entity->get('layout_builder__layout')->getValue();
+              // $section_storage = $entity->getEntityTypeId() . '.' .
+              // $entity->bundle() . '.' . $entity->id();
+              foreach ($listSetions as $value) {
+                $sections[] = reset($value);
+              }
+              $this->getOverrideScss($sections);
+              // Pas necessaire, cela va ajouter plus de styles, Or on a deja
+              // recuperer les styles utiles via d'autres mecanimes.
+              // $this->generateStyleFromSection($sections, $section_storage);
             }
-            $this->getOverrideScss($sections);
-            // Pas necessaire, cela va ajouter plus de styles, Or on a deja
-            // recuperer les styles utiles via d'autres mecanimes.
-            // $this->generateStyleFromSection($sections, $section_storage);
-          }
-          else {
-            $entitiesViews = $this->entityTypeManager()->getStorage('entity_view_display')->loadByProperties([
-              'targetEntityType' => $entity->getEntityTypeId(),
-              'bundle' => $entity->bundle()
-            ]);
-            foreach ($entitiesViews as $entityView) {
-              /**
-               *
-               * @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay
-               */
-              if ($entityView instanceof \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay) {
-                $this->generateSTyleFromEntity($entityView, false);
-                $this->generateStyleFromFieldConfigDisplay($entityView, false);
-                $layout_builder = $this->getSectionsForEntityView($entityView);
-                if (!empty($layout_builder['enabled']) && $layout_builder['sections']) {
-                  $this->getOverrideScss($layout_builder['sections']);
+            else {
+              $entitiesViews = $this->entityTypeManager()->getStorage('entity_view_display')->loadByProperties([
+                'targetEntityType' => $entity->getEntityTypeId(),
+                'bundle' => $entity->bundle()
+              ]);
+              foreach ($entitiesViews as $entityView) {
+                /**
+                 *
+                 * @var \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay
+                 */
+                if ($entityView instanceof \Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay) {
+                  $this->generateSTyleFromEntity($entityView, false);
+                  $this->generateStyleFromFieldConfigDisplay($entityView, false);
+                  $layout_builder = $this->getSectionsForEntityView($entityView);
+                  if (!empty($layout_builder['enabled']) && $layout_builder['sections']) {
+                    $this->getOverrideScss($layout_builder['sections']);
+                  }
                 }
               }
+              $this->getAllStylesFromOverrideEntity($entity);
             }
-            $this->getAllStylesFromOverrideEntity($entity);
           }
         }
       }
