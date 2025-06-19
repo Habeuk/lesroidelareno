@@ -161,9 +161,11 @@ function lesroidelareno_layoutgenentitystyles_presave_alter_status($status, Enti
    *
    * @var \Drupal\Core\Entity\ContentEntityBase $entity
    */
-  $domaine_id = $entity->get(\Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD)->target_id;
-  if (Lesroidelareno::getCurrentDomainId() == $domaine_id) {
-    $status = true;
+  if ($entity instanceof \Drupal\Core\Entity\ContentEntityInterface && $entity->hasField(\Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD)) {
+    $domaine_id = $entity->get(\Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD)->target_id;
+    if (Lesroidelareno::getCurrentDomainId() == $domaine_id) {
+      $status = true;
+    }
   }
 }
 
