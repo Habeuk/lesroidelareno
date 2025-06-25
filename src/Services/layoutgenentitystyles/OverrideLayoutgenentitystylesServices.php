@@ -26,12 +26,6 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
   protected $serviceInner;
   
   /**
-   *
-   * @var \Drupal\layout_custom_style\StyleScssPluginManager
-   */
-  protected $StyleScssPlugin;
-  
-  /**
    * Contient la liste des entites donc on va rechercher s'il possede les
    * données pour le champs "layout_builder__layout"
    * Pour le moment on fait uniquement pour l'ent
@@ -184,7 +178,83 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
    * Permet de recuperer tous les styles ajouter via l'interface des Scss.js de
    * layout.
    */
-  protected function getComponentsOverrides() {
+  public function getComponentsOverrides() {
+    // on exclue wb-horizon, car il y'aurra bcp de styles provenant de modele.
+    if ($this->getDomainId() != 'wb_horizon_com') {
+      $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
+      // On filtre les affichages par ceux donc l'utilisateur à valider.
+      $config = $this->getConfigs();
+      $entity_auto_generate = array_filter($config['entity_auto_generate'], function ($value) {
+        return $value ?? false;
+      });
+      $entity_auto_generate = array_keys($entity_auto_generate);
+      foreach ($entity_auto_generate as $entity_type_id) {
+        /**
+         *
+         * @var \Drupal\Core\Entity\Sql\SqlContentEntityStorage $storage
+         */
+        $storage = $this->entityTypeManager()->getStorage($entity_type_id);
+        if (!$storage && !($storage instanceof \Drupal\Core\Entity\Sql\SqlContentEntityStorage))
+          continue;
+        $layoutEntitiesViews = [];
+        // Verifions si l'entite a des bundles.
+        if ($storage->getEntityType()->getBundleEntityType()) {
+          $BundleEntityType = $storage->getEntityType()->getBundleEntityType();
+          $BundleEntities = $this->entityTypeManager()->getStorage($BundleEntityType)->loadMultiple();
+          // Les bundles qui ont un affichage utilisant les layouts.
+          foreach ($BundleEntities as $BundleEntity) {
+            $this->getEntitiesModeDisplay($layoutEntitiesViews, $entity_type_id, $BundleEntity->id());
+          }
+        }
+        else {
+          $this->getEntitiesModeDisplay($layoutEntitiesViews, $entity_type_id, $entity_type_id);
+        }
+        if ($layoutEntitiesViews) {
+          foreach ($layoutEntitiesViews as $bundle_id => $layoutEntities) {
+            foreach ($layoutEntities as $layout_builder) {
+              $key = $storage->getEntityType()->getKey('bundle');
+              $query = $storage->getQuery();
+              $query->condition($field_access, $this->getDomainId());
+              if ($key)
+                $query->condition($key, $bundle_id);
+              $ids = $query->accessCheck(TRUE)->execute();
+              if ($ids)
+                if ($layout_builder['allow_custom']) {
+                  $entities = $this->entityTypeManager->getStorage($entity_type_id)->loadMultiple($ids);
+                  if ($entities) {
+                    // on ajoute les styles par defaut.
+                    $this->getOverrideScss($layout_builder['sections']);
+                    // On ajoute les styles par defaut.
+                    foreach ($entities as $entity) {
+                      $sections = [];
+                      $listSetions = $entity->get('layout_builder__layout')->getValue();
+                      // $section_storage = $entity->getEntityTypeId() . '.' .
+                      // $entity->bundle() . '.' . $entity->id();
+                      foreach ($listSetions as $value) {
+                        $sections[] = reset($value);
+                      }
+                      $this->getOverrideScss($sections);
+                    }
+                  }
+                }
+                else {
+                  // on ajoute les styles par defaut.
+                  $this->getOverrideScss($layout_builder['sections']);
+                }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Permet de recuperer tous les styles ajouter via l'interface des Scss.js de
+   * layout.
+   *
+   * @deprecated permet juste de comparer avec getComponentsOverrides();
+   */
+  public function getComponentsOverridesOLD() {
     // on exclue wb-horizon, car il y'aurra bcp de styles provenant de modele.
     if ($this->getDomainId() != 'wb_horizon_com') {
       $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
@@ -193,7 +263,10 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
         'blocks_contents'
       ];
       foreach ($entities_base as $entity_type_id) {
-        $query = $this->entityTypeManager()->getStorage($entity_type_id)->getQuery();
+        $storage = $this->entityTypeManager()->getStorage($entity_type_id);
+        if (!$storage)
+          continue;
+        $query = $storage->getQuery();
         $query->condition($field_access, $this->getDomainId());
         $ids = $query->accessCheck(TRUE)->execute();
         if ($ids) {
@@ -302,34 +375,6 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
       }
     }
     return $blocks;
-  }
-  
-  /**
-   * Lors de la generation d'un site, les styles ajoute au paragraph ne sont pas
-   * creer afin que ce processus soit rapide.
-   * Cette fonction permet d'ajouter ces styles dans la table "files_style".
-   */
-  protected function getOverrideScss(array $sections) {
-    foreach ($sections as $section) {
-      /**
-       *
-       * @var \Drupal\layout_builder\Section $section
-       */
-      $storage = $section->getLayoutSettings();
-      $this->loadPluginScss()->addConfigs($storage);
-    }
-  }
-  
-  /**
-   * Specifique à wb-horizon.
-   *
-   * @return \Drupal\layout_custom_style\StyleScssPluginManager
-   */
-  protected function loadPluginScss() {
-    if (!$this->StyleScssPlugin) {
-      $this->StyleScssPlugin = \Drupal::service('plugin.manager.style_scss');
-    }
-    return $this->StyleScssPlugin;
   }
   
   private function setDefaultDomain() {
