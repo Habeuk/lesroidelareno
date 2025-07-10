@@ -188,6 +188,7 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
         return $value ?? false;
       });
       $entity_auto_generate = array_keys($entity_auto_generate);
+      
       foreach ($entity_auto_generate as $entity_type_id) {
         /**
          *
@@ -212,6 +213,9 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
         if ($layoutEntitiesViews) {
           foreach ($layoutEntitiesViews as $bundle_id => $layoutEntities) {
             foreach ($layoutEntities as $layout_builder) {
+              // On doit se rassurer que chaque entité peut etre surcharger.
+              if (!$layout_builder['allow_custom'])
+                continue;
               $key = $storage->getEntityType()->getKey('bundle');
               $query = $storage->getQuery();
               $query->condition($field_access, $this->getDomainId());
@@ -222,7 +226,7 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
                 if ($layout_builder['allow_custom']) {
                   $entities = $this->entityTypeManager->getStorage($entity_type_id)->loadMultiple($ids);
                   if ($entities) {
-                    // on ajoute les styles par defaut.
+                    // On ajoute les styles par defaut.
                     $this->getOverrideScss($layout_builder['sections']);
                     // On ajoute les styles par defaut.
                     foreach ($entities as $entity) {
