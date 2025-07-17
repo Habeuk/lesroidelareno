@@ -50,8 +50,7 @@ services:
 # Decoration en utilisant le nom generer automatiquement : {id_sercive}.inner
   lesroidelareno.layoutgenentitystyles.paragraph_loader:
     class: Drupal\lesroidelareno\Services\layoutgenentitystyles\OverrideParagraphLoader
-    arguments: ['@lesroidelareno.layoutgenentitystyles.paragraph_loader.inner','@entity_type.manager', '@entity_field.manager']
-    decorates: layoutgenentitystyles.paragraph_loader
-    public: false
+    arguments: ['@entity_type.manager', '@entity_field.manager']
+    public: true
     
 

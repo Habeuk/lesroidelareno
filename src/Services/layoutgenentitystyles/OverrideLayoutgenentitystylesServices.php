@@ -52,7 +52,7 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
        *
        * @var \Drupal\lesroidelareno\Services\layoutgenentitystyles\OverrideParagraphLoader $paragraph_loader
        */
-      $paragraph_loader = \Drupal::service('layoutgenentitystyles.paragraph_loader');
+      $paragraph_loader = \Drupal::service('lesroidelareno.layoutgenentitystyles.paragraph_loader');
       $paragraph_loader->setDomaineId($this->domaine_id);
       /**
        * Contient tous les modes d'affichage sans filtre par domaine.
@@ -60,7 +60,7 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
        *
        * @var array $sectionStorages
        */
-      $DefaultSectionStorages = $this->serviceInner->getListSectionStorages();
+      $DefaultSectionStorages = $this->getBaseStorage();
       //
       $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
       $field_all_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_ALL_FIELD;
@@ -129,8 +129,9 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
         }
       }
       $this->sectionStorages = $sectionStorages;
+      
       // on passe par une approche statique pour wb-horizon.
-      if ($this->getDomainId() == 'wb_horizon_com0') {
+      if ($this->getDomainId() == 'wb_horizon_com') {
         $entitiesAdd = [
           [
             'entity_type_id' => 'blocks_contents',
@@ -143,6 +144,10 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
           [
             'entity_type_id' => 'block_content',
             'bundle' => 'footer'
+          ],
+          [
+            'entity_type_id' => 'user',
+            'bundle' => 'user'
           ]
         ];
         foreach ($entitiesAdd as $entitiyAdd) {
@@ -153,11 +158,65 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
             ]);
           $this->sectionStorages += $customsectionStorages;
         }
+        // if (\Drupal::currentUser()->id() == 1)
+        // dd($DefaultSectionStorages, $this->sectionStorages);
       }
     }
     //
     $this->getComponentsOverrides();
     return $this->sectionStorages;
+  }
+  
+  /**
+   * On recupere la liste des plugins d'affichage d'entite validé en funcion de
+   * la configurations.
+   *
+   * @return array
+   */
+  private function getBaseStorage() {
+    /**
+     * L'entite qui gere les affichages.
+     *
+     * @var string $entity_type_id
+     */
+    $entity_type_id = 'entity_view_display';
+    $DefaultsSectionStorages = $this->entityTypeManager()->getStorage($entity_type_id)->loadByProperties();
+    // On filtre les affichages par ceux donc l'utilisateur à valider.
+    $config = $this->getConfigs();
+    $entity_auto_generate = array_filter($config['entity_auto_generate'], function ($value) {
+      return $value ?? false;
+    });
+    if ($entity_auto_generate) {
+      $entity_auto_generate = array_keys($entity_auto_generate);
+      $this->sectionStorages = array_filter($DefaultsSectionStorages,
+        function ($key) use ($entity_auto_generate) {
+          foreach ($entity_auto_generate as $valid_entity_type_id) {
+            if (str_contains($key, $valid_entity_type_id . '.'))
+              return true;
+          }
+          return false;
+        }, ARRAY_FILTER_USE_KEY);
+      // On recupere les paragraphes attaché à un layout.
+      // ( Dans cette approche, on considere que tous les layouts sont
+      // associés à des paragraphes ).
+      /**
+       *
+       * @var \Drupal\lesroidelareno\Services\layoutgenentitystyles\OverrideParagraphLoader $paragraph_loader
+       */
+      $paragraph_loader = \Drupal::service('lesroidelareno.layoutgenentitystyles.paragraph_loader');
+      $grouped = $paragraph_loader->loadGroupedByParagraphType($entity_auto_generate);
+      $sectionStorages = [];
+      foreach ($grouped as $entity_type_id => $entity_type_ids) {
+        foreach ($entity_type_ids as $infor_entity) {
+          // On recupere les configurations d'affichage liée au paragraphs.
+          $seach_key = 'paragraph.' . $infor_entity['paragraph_type'] . '.';
+          $sectionStorages += array_filter($DefaultsSectionStorages, function ($key) use ($seach_key) {
+            return str_contains($key, $seach_key) ? true : false;
+          }, ARRAY_FILTER_USE_KEY);
+        }
+      }
+    }
+    return $sectionStorages;
   }
   
   /**

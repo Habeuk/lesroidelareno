@@ -30,20 +30,13 @@ class OverrideParagraphLoader extends ParagraphLoader {
   
   /**
    *
-   * @var ParagraphLoader
-   */
-  protected $serviceInner;
-  
-  /**
-   *
    * @var string
    */
   private $domaine_id;
   
-  public function __construct(ParagraphLoader $serviceInner, $entityTypeManager, $entityFieldManager) {
-    $this->serviceInner = $serviceInner;
-    parent::__construct($entityTypeManager, $entityFieldManager);
-  }
+  // public function __construct($entityTypeManager, $entityFieldManager) {
+  // parent::__construct($entityTypeManager, $entityFieldManager);
+  // }
   
   /**
    * [NB: il faudra comprendre pourquoi cette fonction s'execute 3 foix et avec
@@ -58,14 +51,14 @@ class OverrideParagraphLoader extends ParagraphLoader {
     $paragraph_fields = [];
     if ($this->getDomainId() == 'wb_horizon_com') {
       // $this->findParagraphReferenceFieldsWBh($paragraph_fields);
-      $paragraph_fields = $this->serviceInner->findParagraphReferenceFields([
+      $paragraph_fields = parent::findParagraphReferenceFields([
         'block_content',
         'blocks_contents',
         'site_internet_entity'
       ]);
     }
     else {
-      $paragraph_fields = $this->serviceInner->findParagraphReferenceFields($entities);
+      $paragraph_fields = parent::findParagraphReferenceFields($entities);
     }
     return $paragraph_fields;
   }
@@ -156,7 +149,7 @@ class OverrideParagraphLoader extends ParagraphLoader {
      *
      * @var \Drupal\mysql\Driver\Database\mysql\Select $query
      */
-    $query = $this->serviceInner->updateQuery($table, $entity_type_id, $field, $id, $EntityStorage);
+    $query = parent::updateQuery($table, $entity_type_id, $field, $id, $EntityStorage);
     if ($this->hasFieldDomainAccess($entity_type_id)) {
       $tableJoin = $entity_type_id . '__' . $this->field_access;
       $condition = $tableJoin . '.entity_id = ' . $table . '.' . $id . " and " . $tableJoin . "." . $this->field_access . "_target_id  = '" . $this->getDomainId() . "'";
