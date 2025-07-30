@@ -136,9 +136,8 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
       }
       
       $this->sectionStorages = $sectionStorages;
-      
       // on passe par une approche statique pour wb-horizon.
-      if ($this->getDomainId() == 'wb_horizon_com') {
+      if ($this->getDomainId() == 'wb_horizon_com' || $this->getDomainId() == 'wb_horizon_kksa') {
         $entitiesAdd = [
           [
             'entity_type_id' => 'blocks_contents',
