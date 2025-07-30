@@ -62,7 +62,6 @@ function lesroidelareno_entity_presave(EntityInterface $entity) {
       case 'commerce_payment_method': // identification d'une methode de
                                        // paiment
                                        // enregistrer
-        
         $setDomaine = true;
         break;
     }

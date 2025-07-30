@@ -35,6 +35,12 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
   protected $entitiesListLayoutBuilderLayout = [
     'cv_entity'
   ];
+  /**
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
+  protected $fields = [];
   
   function __construct(LayoutgenentitystylesServices $serviceInner, $SectionStorageManager, $LoadStyleFromMod, $ConfigFactory, $ManageFileCustomStyle, $ManageFileMailStyle) {
     $this->serviceInner = $serviceInner;
@@ -128,6 +134,7 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
           }
         }
       }
+      
       $this->sectionStorages = $sectionStorages;
       
       // on passe par une approche statique pour wb-horizon.
@@ -181,11 +188,13 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
      */
     $entity_type_id = 'entity_view_display';
     $DefaultsSectionStorages = $this->entityTypeManager()->getStorage($entity_type_id)->loadByProperties();
+    
     // On filtre les affichages par ceux donc l'utilisateur à valider.
     $config = $this->getConfigs();
     $entity_auto_generate = array_filter($config['entity_auto_generate'], function ($value) {
       return $value ?? false;
     });
+    
     if ($entity_auto_generate) {
       $entity_auto_generate = array_keys($entity_auto_generate);
       $this->sectionStorages = array_filter($DefaultsSectionStorages,
@@ -196,6 +205,13 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
           }
           return false;
         }, ARRAY_FILTER_USE_KEY);
+      /**
+       * On a un probleme de paragraphe qui persite.
+       * Pour gagner en temps.
+       */
+      if ($this->getDomainId() != 'wb_horizon_com') {
+        return $this->sectionStorages;
+      }
       // On recupere les paragraphes attaché à un layout.
       // ( Dans cette approche, on considere que tous les layouts sont
       // associés à des paragraphes ).
@@ -205,6 +221,7 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
        */
       $paragraph_loader = \Drupal::service('lesroidelareno.layoutgenentitystyles.paragraph_loader');
       $grouped = $paragraph_loader->loadGroupedByParagraphType($entity_auto_generate);
+      
       $sectionStorages = [];
       foreach ($grouped as $entity_type_id => $entity_type_ids) {
         foreach ($entity_type_ids as $infor_entity) {
@@ -240,6 +257,8 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
   public function getComponentsOverrides() {
     // on exclue wb-horizon, car il y'aurra bcp de styles provenant de modele.
     if ($this->getDomainId() != 'wb_horizon_com') {
+      $cache_ids = [];
+      $cache_entities = [];
       $field_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
       // On filtre les affichages par ceux donc l'utilisateur à valider.
       $config = $this->getConfigs();
@@ -269,21 +288,30 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
         else {
           $this->getEntitiesModeDisplay($layoutEntitiesViews, $entity_type_id, $entity_type_id);
         }
+        
         if ($layoutEntitiesViews) {
           foreach ($layoutEntitiesViews as $bundle_id => $layoutEntities) {
             foreach ($layoutEntities as $layout_builder) {
               // On doit se rassurer que chaque entité peut etre surcharger.
-              if (!$layout_builder['allow_custom'])
+              if (!$layout_builder['enabled'])
                 continue;
-              $key = $storage->getEntityType()->getKey('bundle');
-              $query = $storage->getQuery();
-              $query->condition($field_access, $this->getDomainId());
-              if ($key)
-                $query->condition($key, $bundle_id);
-              $ids = $query->accessCheck(TRUE)->execute();
-              if ($ids)
+              $this->getIds($cache_ids, $storage, $entity_type_id, $bundle_id, $field_access);
+              $ids = $cache_ids[$entity_type_id][$bundle_id];
+              
+              // $key = $storage->getEntityType()->getKey('bundle');
+              // $query = $storage->getQuery();
+              // if ($this->EntityHasField($entity_type_id, $field_access))
+              // $query->condition($field_access, $this->getDomainId());
+              // if ($key)
+              // $query->condition($key, $bundle_id);
+              // $ids = $query->accessCheck(TRUE)->execute();
+              
+              if ($ids) {
+                // dump($ids, $bundle_id, $entity_type_id);
                 if ($layout_builder['allow_custom']) {
-                  $entities = $this->entityTypeManager->getStorage($entity_type_id)->loadMultiple($ids);
+                  if (empty($cache_entities[$entity_type_id][$bundle_id]))
+                    $cache_entities[$entity_type_id][$bundle_id] = $this->entityTypeManager->getStorage($entity_type_id)->loadMultiple($ids);
+                  $entities = $cache_entities[$entity_type_id][$bundle_id];
                   if ($entities) {
                     // On ajoute les styles par defaut.
                     $this->getOverrideScss($layout_builder['sections']);
@@ -304,10 +332,24 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
                   // on ajoute les styles par defaut.
                   $this->getOverrideScss($layout_builder['sections']);
                 }
+              }
             }
           }
         }
       }
+      // dd($entity_auto_generate);
+    }
+  }
+  
+  private function getIds(array &$cache_ids, $storage, $entity_type_id, $bundle_id, $field_access) {
+    if (empty($cache_ids[$entity_type_id][$bundle_id])) {
+      $key = $storage->getEntityType()->getKey('bundle');
+      $query = $storage->getQuery();
+      if ($this->EntityHasField($entity_type_id, $field_access))
+        $query->condition($field_access, $this->getDomainId());
+      if ($key)
+        $query->condition($key, $bundle_id);
+      $cache_ids[$entity_type_id][$bundle_id] = $query->accessCheck(TRUE)->execute();
     }
   }
   
@@ -438,6 +480,32 @@ class OverrideLayoutgenentitystylesServices extends LayoutgenentitystylesService
       }
     }
     return $blocks;
+  }
+  
+  private function EntityHasField($entity_type_id, $fieldname) {
+    if (empty($this->fields[$entity_type_id][$fieldname])) {
+      $entityFieldManager = $this->EntityFieldManager();
+      $fields = $entityFieldManager->getBaseFieldDefinitions($entity_type_id);
+      if (!empty($fields[$fieldname])) {
+        $this->fields[$entity_type_id][$fieldname] = $fields[$fieldname];
+        return true;
+      }
+    }
+    else
+      return true;
+    return false;
+  }
+  
+  /**
+   *
+   * @return \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  private function EntityFieldManager() {
+    if (!$this->entityFieldManager) {
+      
+      $this->entityFieldManager = \Drupal::service('entity_field.manager');
+    }
+    return $this->entityFieldManager;
   }
   
   private function setDefaultDomain() {
