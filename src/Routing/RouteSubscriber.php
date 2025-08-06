@@ -20,6 +20,10 @@ class RouteSubscriber extends RouteSubscriberBase {
     if ($route = $collection->get('system.entity_autocomplete')) {
       $route->setDefault('_controller', '\Drupal\lesroidelareno\Services\EntityReferenceAutocomplete::handleAutocompleteCustom');
     }
+    // On change le route qui effectue le traiement de apivuejs.save.entity
+    if ($route = $collection->get('apivuejs.save.entity')) {
+      $route->setDefault('_controller', 'Drupal\lesroidelareno\Controller\LesroidelarenoApivuejsController::saveEntity');
+    }
     /**
      * On modifie les acces pour la creation des contenus entites.
      * L'utilisateur doit avoir le role gerant_de_site_web ou administrateur.
@@ -85,5 +89,4 @@ class RouteSubscriber extends RouteSubscriberBase {
       // }
     }
   }
-  
 }

@@ -33,6 +33,9 @@ services:
     class: Drupal\lesroidelareno\Services\Payements\PayementGateWay
     arguments: ['@domain.negotiator','@entity_type.manager','@entity.form_builder']
 
+  lesroisdelareno.apculock:
+    class: Drupal\lesroidelareno\Services\APCuLockBackend
+
 # Decoration en definissant un nom propre pour la decoration de service. 
   lesroidelareno.layoutgenentitystyles.add.style.theme:
     class: Drupal\lesroidelareno\Services\layoutgenentitystyles\OverrideLayoutgenentitystylesServices
