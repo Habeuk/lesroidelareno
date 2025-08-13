@@ -4,6 +4,7 @@ namespace Drupal\lesroidelareno;
 
 use Drupal\Component\Utility\Crypt;
 use PhpParser\Error;
+use Stephane888\Debug\Repositories\ConfigDrupal;
 
 class lesroidelareno {
   /**
@@ -40,6 +41,13 @@ class lesroidelareno {
    * @var string
    */
   private static $managerEcommerce = 'manage_ecommerce';
+  
+  /**
+   * Propriettaire et gerant de ecommerce web.
+   *
+   * @var string
+   */
+  private static $creatorWebsite = 'creator_web_site';
   /**
    *
    * @var boolean
@@ -148,6 +156,10 @@ class lesroidelareno {
     ];
   }
   
+  static public function getRoleManagerWebsite() {
+    return self::$managerWebSite;
+  }
+  
   /**
    * Determine si un utilisateur a le role administrateur.
    *
@@ -176,10 +188,11 @@ class lesroidelareno {
   }
   
   /**
+   * En gors verifie que l'utilisateur a le role gerant_de_site_web ou
+   * manage_ecommerce.
    * L'utilisateur connecté est proprietaire d'un site ou a les roles pour gerer
    * un site ? true:false;
    * On doit mettre le resultat en cache pour l'utilisateur et le domaine.
-   * // on doit utiliser les caches pour cette information ?
    */
   static public function isOwnerSite() {
     if (self::$isOwnerSite === NULL) {
@@ -219,7 +232,6 @@ class lesroidelareno {
         else {
           self::$userIsAdministratorSite = false;
           if (self::isOwnerSite()) {
-            
             $uid = self::getCurrentUserId();
             $user = \Drupal\user\Entity\User::load($uid);
             $domaines = $user->get('field_domain_admin')->getValue();
@@ -231,8 +243,18 @@ class lesroidelareno {
               }
             }
           }
+          else {
+            $configs = ConfigDrupal::config('lesroidelareno.settings', true);
+            if (!empty($configs['users'])) {
+              foreach ($configs['users'] as $value) {
+                if ($value['target_id'] == self::getCurrentUserId())
+                  self::$userIsAdministratorSite = true;
+                break;
+              }
+            }
+          }
         }
-        // dans la mesure ou le cache n'avais pas cette information on l'ajoute.
+        // Dans la mesure ou le cache n'avais pas cette information on l'ajoute.
         self::setDataCache('userIsAdministratorSite', self::$userIsAdministratorSite);
         // \Drupal::messenger()->addError('cache not work :
         // userIsAdministratorSite');
@@ -457,5 +479,4 @@ class lesroidelareno {
     // on verifie que la session est effectivement celle stocker en memoire pour
     // l'utilisateur.
   }
-  
 }

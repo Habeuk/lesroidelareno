@@ -5,3 +5,11 @@ system.menu.*.third_party.lesroidelareno:
     domain_id:
       type: string
       label: 'domaine id that this menu is attach'
+# Schema for the configuration files of the lesroidelareno module.
+lesroidelareno.settings:
+  type: config_object
+  label: 'lesroidelareno settings'
+  mapping:
+    users:
+      type: array
+      label: 'Users'

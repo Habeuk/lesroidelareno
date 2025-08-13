@@ -158,3 +158,12 @@ lesroidelareno.apigenerate:
     _controller: '\Drupal\lesroidelareno\Controller\LayoutgenentitystylesController::apiManuelGenerate'
   requirements:
     _access: 'TRUE'
+
+lesroidelareno.admin_users:
+  path: '/admin/config/system/admin-users'
+  defaults:
+    _title: 'Admin users'
+    _form: 'Drupal\lesroidelareno\Form\AdminUsersForm'
+  requirements:
+    _permission: 'access content'
+    _role: 'gerant_de_site_web+administrator'

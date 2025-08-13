@@ -40,3 +40,10 @@ commerce_payment_config.admin.structure.settings:
   description: 'Configure Commerce payment config entities'
   route_name: commerce_payment_config.settings
   parent: system.admin_structure
+
+lesroidelareno.admin_users:
+  title: Admin users
+  description: Permet d&#039;ajouter des administrateurs sur un site
+  parent: system.admin_config_system
+  route_name: lesroidelareno.admin_users
+  weight: 10
