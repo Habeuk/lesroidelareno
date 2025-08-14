@@ -28,6 +28,11 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
    * @see \Drupal\blockscontent\BlocksContentsAccessControlHandler::checkAccess()
    */
   protected function checkAccess(EntityInterface $paragraph, $operation, AccountInterface $account) {
+    /**
+     *
+     * @deprecated car pas utile.
+     * @var bool $isOwnerSite
+     */
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
     $IsAdministratorSite = lesroidelareno::userIsAdministratorSite();
@@ -58,11 +63,13 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
         elseif (!$paragraph->isNew() && $paragraph->hasField($field_domain_access) && $paragraph->{$field_domain_access}->target_id !== lesroidelareno::getCurrentDomainId()) {
           return AccessResult::forbidden()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
         }
-        elseif ($isOwnerSite || $IsAdministratorSite) {
+        elseif ($IsAdministratorSite) {
           // si on parvient à identifier le parent.
           if ($paragraph->getParentEntity() != NULL) {
             return parent::checkAccess($paragraph, $operation, $account);
           }
+          elseif ($IsAdministratorSite)
+            return AccessResult::allowed()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
           elseif ($paragraph->get('wbh_user_id')->target_id == lesroidelareno::getCurrentUserId()) {
             // dump(\Drupal::routeMatch()->getRouteObject());
             // dump(\Drupal::routeMatch()->getRouteName());
@@ -77,13 +84,10 @@ class ParagraphAccess extends ParagraphAccessControlHandler {
             // dump($role->getPermissions());
             return AccessResult::allowed()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
           }
-          elseif ($IsAdministratorSite)
-            return AccessResult::allowed()->addCacheableDependency($paragraph)->addCacheContexts($cache_contexts);
         }
         break;
     }
     // on bloque au cas contraire.
     return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheContexts($cache_contexts);
   }
-  
 }

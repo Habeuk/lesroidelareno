@@ -188,7 +188,7 @@ class lesroidelareno {
   }
   
   /**
-   * En gors verifie que l'utilisateur a le role gerant_de_site_web ou
+   * En grors verifie que l'utilisateur a le role gerant_de_site_web ou
    * manage_ecommerce.
    * L'utilisateur connecté est proprietaire d'un site ou a les roles pour gerer
    * un site ? true:false;
@@ -231,24 +231,17 @@ class lesroidelareno {
         }
         else {
           self::$userIsAdministratorSite = false;
+          /**
+           * Determiner si l'utilisateur est definie comme adminisrateur du site
+           * du site.
+           */
           if (self::isOwnerSite()) {
             $uid = self::getCurrentUserId();
             $user = \Drupal\user\Entity\User::load($uid);
             $domaines = $user->get('field_domain_admin')->getValue();
-            
             foreach ($domaines as $value) {
               if ($value['target_id'] == self::getCurrentDomainId()) {
                 self::$userIsAdministratorSite = true;
-                break;
-              }
-            }
-          }
-          else {
-            $configs = ConfigDrupal::config('lesroidelareno.settings', true);
-            if (!empty($configs['users'])) {
-              foreach ($configs['users'] as $value) {
-                if ($value['target_id'] == self::getCurrentUserId())
-                  self::$userIsAdministratorSite = true;
                 break;
               }
             }

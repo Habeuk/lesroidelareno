@@ -188,6 +188,8 @@ final class AdminUsersForm extends ConfigFormBase implements ContainerInjectionI
            */
           if (!$this->hasValue(lesroidelareno::getCurrentDomainId(), $userArray['field_domain_admin'])) {
             $update = true;
+            // Ce champs est utilisé pour determiner si l'utilisateur est
+            // administrateur du domaine.
             $userArray['field_domain_admin'][] = [
               'target_id' => lesroidelareno::getCurrentDomainId()
             ];

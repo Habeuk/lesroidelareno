@@ -78,10 +78,10 @@ trait AccessDefault {
           \Drupal::logger('lesroidelareno')->info($message, $db);
           return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
-        elseif ($isOwnerSite && $entity->getOwnerId() == lesroidelareno::getCurrentUserId()) {
+        elseif ($IsAdministratorSite) {
           return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
-        elseif ($IsAdministratorSite) {
+        elseif ($isOwnerSite && $entity->getOwnerId() == lesroidelareno::getCurrentUserId()) {
           return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         break;
@@ -89,5 +89,4 @@ trait AccessDefault {
     // on bloque au cas contraire.
     return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
   }
-  
 }

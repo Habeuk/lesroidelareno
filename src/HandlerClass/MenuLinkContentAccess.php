@@ -21,8 +21,14 @@ class MenuLinkContentAccess extends MenuLinkContentAccessControlHandler {
     $cache_contexts = [
       'url.site'
     ];
+    /**
+     *
+     * @deprecated car pas utile.
+     * @var bool $isOwnerSite
+     */
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
+    $IsAdministratorSite = lesroidelareno::userIsAdministratorSite();
     switch ($operation) {
       // Tout le monde peut voir les contenus publiées.
       case 'view':
@@ -43,15 +49,24 @@ class MenuLinkContentAccess extends MenuLinkContentAccessControlHandler {
       case 'delete':
         if ($isAdministrator)
           return AccessResult::allowed();
-        elseif ($isOwnerSite) {
+        elseif ($IsAdministratorSite) {
+          // l'utilisateur est auteur du menu.
           if ($entity->get('wbh_user_id')->target_id) {
             if ($entity->get('wbh_user_id')->target_id == lesroidelareno::getCurrentUserId())
               return AccessResult::allowed();
           }
-          // verification à partir du menu
+          $domain_id = lesroidelareno::getCurrentDomainId();
+          $query = \Drupal::entityTypeManager()->getStorage('menu')->getQuery();
+          $query->condition('label', $domain_id, 'CONTAINS');
+          $ids = $query->execute();
+          if ($ids)
+            return AccessResult::allowed();
+          /**
+           * Verifie si l'utilisateur est createur du domaine.
+           */
           elseif ($domain_id = lesroidelareno::FindUserAuthorDomain()) {
             /**
-             * *
+             * Pour les anciens sites.(les toutes premieres creations)
              *
              * @var \Drupal\menu_link_content\Entity\MenuLinkContent $entity
              */
@@ -59,19 +74,10 @@ class MenuLinkContentAccess extends MenuLinkContentAccessControlHandler {
             if ($menu->getThirdPartySetting('lesroidelareno', 'domain_id') === $domain_id) {
               return AccessResult::allowed();
             }
-            // verification à partir du label.
-            else {
-              $query = \Drupal::entityTypeManager()->getStorage('menu')->getQuery();
-              $query->condition('label', $domain_id, 'CONTAINS');
-              $ids = $query->execute();
-              if ($ids)
-                return AccessResult::allowed();
-            }
           }
         }
     }
     // on bloque au cas contraire.
     return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
   }
-  
 }

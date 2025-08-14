@@ -17,6 +17,7 @@ class Menu extends MenuAccessControlHandler {
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
     $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
+    $IsAdministratorSite = lesroidelareno::userIsAdministratorSite();
     $target_id = $entity->getThirdPartySetting('wb_horizon_public', 'domain_id');
     $cache_contexts = [
       'url.site'
@@ -39,7 +40,7 @@ class Menu extends MenuAccessControlHandler {
       elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
         return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
-      elseif ($isOwnerSite)
+      elseif ($IsAdministratorSite)
         return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       else
         $access;
@@ -56,7 +57,7 @@ class Menu extends MenuAccessControlHandler {
         elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
           return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
-        elseif ($isOwnerSite) {
+        elseif ($IsAdministratorSite) {
           return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
       }
@@ -68,12 +69,11 @@ class Menu extends MenuAccessControlHandler {
       elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
         return AccessResult::forbidden()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
-      elseif ($isOwnerSite) {
+      elseif ($IsAdministratorSite) {
         return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
       }
     }
     // on bloque au cas contraire.
     return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action");
   }
-  
 }

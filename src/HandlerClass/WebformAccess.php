@@ -35,12 +35,10 @@ class WebformAccess extends WebformEntityAccessControlHandler {
       // dump($operation, $entity->id());
       return parent::checkAccess($entity, $operation, $account);
     }
-    
-    //
-    $isOwnerSite = lesroidelareno::isOwnerSite();
     $isAdministrator = lesroidelareno::isAdministrator();
     $field_domain_access = \Drupal\domain_access\DomainAccessManagerInterface::DOMAIN_ACCESS_FIELD;
     $target_id = $entity->getThirdPartySetting('webform_domain_access', $field_domain_access);
+    $IsAdministratorSite = lesroidelareno::userIsAdministratorSite();
     $cache_contexts = [
       'user',
       'url.site'
@@ -72,7 +70,7 @@ class WebformAccess extends WebformEntityAccessControlHandler {
         elseif (!$entity->isNew() && $target_id !== lesroidelareno::getCurrentDomainId()) {
           return AccessResult::forbidden("Wb-Horizon, Vous n'avez pas les droits pour effectuer cette action")->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
-        elseif ($isOwnerSite && $entity->getOwnerId() == lesroidelareno::getCurrentUserId()) {
+        elseif ($IsAdministratorSite && $target_id === lesroidelareno::getCurrentDomainId()) {
           return AccessResult::allowed()->addCacheableDependency($entity)->addCacheContexts($cache_contexts);
         }
         break;
