@@ -1229,6 +1229,13 @@ function lesroidelareno_jsonapi_webform_filter_access(\Drupal\Core\Entity\Entity
   \Drupal::messenger()->addStatus('lesroidelareno_jsonapi_webform_filter_access');
 }
 
+// /**
+// * implement hook_cache_flush
+// */
+function lesroidelareno_cache_flush() {
+  lesroidelareno::invalidateAllCustomCache();
+}
+
 /**
  * Implements hook_form_alter().
  */

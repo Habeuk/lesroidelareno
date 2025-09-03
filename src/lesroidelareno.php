@@ -5,6 +5,8 @@ namespace Drupal\lesroidelareno;
 use Drupal\Component\Utility\Crypt;
 use PhpParser\Error;
 use Stephane888\Debug\Repositories\ConfigDrupal;
+use Drupal\Core\Cache\Cache;
+use Drupal\redis\Cache\PhpRedis;
 
 class lesroidelareno {
   /**
@@ -94,6 +96,12 @@ class lesroidelareno {
    * @var string
    */
   private static $currentPrefixDomain = NULL;
+  /**
+   *
+   * @var \Drupal\redis\Cache\PhpRedis
+   */
+  private static $cache;
+  private static $cachesRequest = [];
   
   /**
    * Pour ce dernier on utilise pas de cache.
@@ -106,6 +114,68 @@ class lesroidelareno {
     if (self::$uid === NULL)
       self::$uid = \Drupal::currentUser()->id();
     return self::$uid;
+  }
+  
+  static public function setFromDefaultCache($cid, $data, string $cachetag = 'defaut') {
+    /**
+     *
+     * @var \Drupal\redis\Cache\PhpRedis $cache
+     */
+    $cache = self::getDefaultCache();
+    $cache->set($cid, $data, Cache::PERMANENT,
+      [
+        'wbh' . $cachetag,
+        // Les caches par defaut, n'efface si on executer drush cr, il faut
+        // ajouter un tag que Drupal reconnait pour pouvoir effacer.
+        'config:system.performance',
+        // On peut mettre un temps commun à tous, mais ce dernier require
+        // hook_cache_flush.
+        'wbh_custom_cache' // Pour pouvoir invalider tous les caches.
+      ]);
+  }
+  
+  /**
+   * retir
+   *
+   * @param mixed $cid
+   * @return object|false The cache item or FALSE on failure.
+   */
+  static public function getFromDefautCache($cid) {
+    if (empty(self::$cachesRequest[$cid])) {
+      $cache = self::getDefaultCache();
+      $cids = [
+        $cid
+      ];
+      $cache->get($cid);
+      $datas = $cache->getMultiple($cids);
+      if (!empty($datas[$cid]->data)) {
+        self::$cachesRequest[$cid] = $datas[$cid]->data;
+      }
+      else
+        self::$cachesRequest[$cid] = false;
+    }
+    return self::$cachesRequest[$cid];
+  }
+  
+  /**
+   *
+   * @return \Drupal\redis\Cache\PhpRedis
+   */
+  static private function getDefaultCache() {
+    if (!self::$cache) {
+      self::$cache = \Drupal::cache();
+      if (!(self::$cache instanceof PhpRedis))
+        throw new \Exception("L'instance du cache doit etre PhpRedis");
+    }
+    return self::$cache;
+  }
+  
+  static public function invalidateAllCustomCache($deleteAll = false) {
+    \Drupal\Core\Cache\Cache::invalidateTags([
+      'wbh_custom_cache'
+    ]);
+    if ($deleteAll)
+      self::getDefaultCache()->deleteAll();
   }
   
   /**

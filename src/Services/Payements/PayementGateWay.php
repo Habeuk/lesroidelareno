@@ -79,8 +79,9 @@ class PayementGateWay {
       $row['mode'] = $mode;
       $row['status'] = $status;
     }
-    
-    return $row + parent::buildRow($entity);
+    // Cette classe ne dispose plus de parent.
+    // return $row + parent::buildRow($entity);
+    return $row;
   }
   
   /**
@@ -95,5 +96,4 @@ class PayementGateWay {
     $header['status'] = $this->t('Status');
     return $header;
   }
-  
 }
